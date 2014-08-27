@@ -5,6 +5,9 @@
 // Adds text into a container
 function addTextLine(con, msg) {
     con.append($('<li>').html(msg));
+
+    // Scroll to the bottom:
+    con.scrollTop(con.prop("scrollHeight"));
 }
 
 $(document).ready(function(){
@@ -19,6 +22,7 @@ $(document).ready(function(){
             button: $('#leftButton'),
             send: $('#leftSend'),
             input: $('#leftInput'),
+            roll: $('#leftRoll')
         },
         right: {
             con: $('#rightCon'),
@@ -26,6 +30,7 @@ $(document).ready(function(){
             button: $('#rightButton'),
             send: $('#rightSend'),
             input: $('#rightInput'),
+            roll: $('#rightRoll')
         }
     };
 
@@ -76,7 +81,7 @@ $(document).ready(function(){
     });
 
     // Omegle is telling us our common likes
-    socket.on('omegleCommonLikes', function(client_id, common_likes) {
+    socket.on('omegleCommonLikes', function(client_id, commonLikes) {
         if(conMap[client_id]) {
             addTextLine(conMap[client_id].field, 'The stranger likes '+commonLikes.toString());
         }
@@ -93,11 +98,20 @@ $(document).ready(function(){
             con.connected = false;
             con.client_id = null;
 
-            // Reset button
-            con.button.attr('value' ,'New');
-
             // Disconnect on the server
             socket.emit('omegleDisconnect', client_id);
+
+            // Should we reroll?
+            if(con.roll.is(':checked')) {
+                // Set to searching
+                con.searching = true;
+
+                // Search
+                socket.emit('newOmegle');
+            } else {
+                // Reset button
+                con.button.attr('value' ,'New');
+            }
         }
     });
 

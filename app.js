@@ -57,7 +57,12 @@ io.on('connection', function(socket) {
     // Client is asking for a new omegle client
     socket.on('newOmegle', function(){
         // Create the new omegle instance
-        var om = new Omegle();
+        var om = new Omegle({
+            topics: [
+                'rp',
+                'role play'
+            ]
+        });
 
         // A store for the clientID
         var realClientID;

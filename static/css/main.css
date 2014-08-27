@@ -11,6 +11,11 @@ li {
     float:left;
 }
 
+.omegleContainer input[type="submit"] {
+    width: 80px;
+    height: 40px;
+}
+
 .omegleField {
     width: 100%;
     height:120px;
@@ -29,6 +34,8 @@ li {
     background: #FFF;
     font-family: Helvetica,Arial,sans-serif;
     padding: 8px;
+
+    overflow-y: scroll;
 }
 
 .sep {
