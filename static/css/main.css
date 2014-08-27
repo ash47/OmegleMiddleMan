@@ -1,0 +1,38 @@
+body {
+    background: #fff7ee;
+}
+
+li {
+    list-style-type: none;
+}
+
+.omegleContainer {
+    width: 45%;
+    float:left;
+}
+
+.omegleField {
+    width: 100%;
+    height:120px;
+}
+
+.omegleWindow {
+    width:100%;
+    height:80%;
+    border: 1px solid #CCC;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    -moz-border-radius-topleft: 8px;
+    -moz-border-radius-topright: 8px
+    -webkit-border-top-left-radius: 8px;
+    -webkit-border-top-right-radius: 8px;
+    background: #FFF;
+    font-family: Helvetica,Arial,sans-serif;
+    padding: 8px;
+}
+
+.sep {
+    width: 5%;
+    float: left;
+    height:1px;
+}
