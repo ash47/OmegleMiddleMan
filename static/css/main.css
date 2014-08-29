@@ -6,19 +6,31 @@ li {
     list-style-type: none;
 }
 
+#mainCon {
+    width:10000px;
+}
+
 .omegleContainer {
-    width: 45%;
+    width: 480px;
     float:left;
+    margin-right:40px;
 }
 
 .omegleContainer input[type="submit"] {
     width: 80px;
     height: 40px;
+    margin-right: 4px;
+    vertical-align: top;
+}
+
+.omegleContainer label {
+    margin-left: 8px;
 }
 
 .omegleField {
     width: 100%;
     height:120px;
+    border: 4px solid #AAA;
 }
 
 .omegleWindow {
@@ -38,8 +50,7 @@ li {
     overflow-y: scroll;
 }
 
-.sep {
-    width: 5%;
-    float: left;
-    height:1px;
+.omegleAutoMessage {
+    width: 240px;
+    height:40px;
 }

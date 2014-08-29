@@ -156,19 +156,19 @@ Omegle.prototype.getStatus = function(callback) {
 };
 
 Omegle.prototype.postEvent = function(event, callback) {
-    return this.requestPost("/" + event, {
+    this.requestPost("/" + event, {
         id: this.client_id
     }, function(res) {
-        return callbackErr(callback, res);
+        callbackErr(callback, res);
     });
 };
 
 Omegle.prototype.startTyping = function(callback) {
-    return this.postEvent('typing', callback);
+    this.postEvent('typing', callback);
 };
 
 Omegle.prototype.stopTyping = function(callback) {
-    return this.postEvent('stopTyping', callback);
+    this.postEvent('stoppedtyping', callback);
 };
 
 Omegle.prototype.disconnect = function(callback) {

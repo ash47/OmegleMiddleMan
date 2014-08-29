@@ -48,7 +48,33 @@ io.on('connection', function(socket) {
             // Send the message
             omegleClients[client_id].send(msg, function(err) {
                 if (err) {
-                    console.log("Error send " + err);
+                    console.log('Error send '+err);
+                }
+            });
+        }
+    });
+
+    // Client started typing
+    socket.on('omegleTyping', function(client_id) {
+        // Check if the client even exists
+        if(omegleClients[client_id]) {
+            // Send the message
+            omegleClients[client_id].startTyping(function(err) {
+                if(err) {
+                    console.log('Error typing '+err)
+                }
+            });
+        }
+    });
+
+    // Client stopped typing
+    socket.on('omegleStopTyping', function(client_id) {
+        // Check if the client even exists
+        if(omegleClients[client_id]) {
+            // Send the message
+            omegleClients[client_id].stopTyping(function(err) {
+                if(err) {
+                    console.log('Error stopping typing '+err)
                 }
             });
         }
@@ -59,8 +85,13 @@ io.on('connection', function(socket) {
         // Create the new omegle instance
         var om = new Omegle({
             topics: [
-                'rp',
-                'role play'
+                'doctor who',
+                'harry potter',
+                'south park',
+                'family guy',
+                'american dad',
+                'the simpsons',
+                'rick and morty'
             ]
         });
 
@@ -119,6 +150,18 @@ io.on('connection', function(socket) {
             socket.emit('omegleDisconnected', realClientID);
         });
 
+        // Stranger started typing
+        om.on('typing', function() {
+            // Tell client
+            socket.emit('omegleTyping', realClientID);
+        });
+
+        // Stranger stopped typing
+        om.on('stoppedTyping', function() {
+            // Tell client
+            socket.emit('omegleStoppedTyping', realClientID);
+        });
+
         // Connect to a client
         om.start(function(err) {
             if (err) {
@@ -131,115 +174,3 @@ io.on('connection', function(socket) {
 http.listen(3000, function() {
     console.log('listening on *:3000');
 });
-
-
-
-return;
-
-var Cleverbot = require('cleverbot-node');
-
-// Create a new cleverbot
-var cb = new Cleverbot();
-
-// Create a new omegle instance
-var om = new Omegle({
-    topics: [
-        'doctor who',
-        'harry potter'
-    ]
-});
-
-om.on('newid', function(data) {
-    console.log(data);
-});
-
-om.on('waiting', function() {
-    console.log('Looking for someone you can chat with...');
-});
-
-om.on('connected', function() {
-    console.log('Connected to a stranger!');
-
-    // Log the message
-    console.log('You: Hi!');
-
-    // Forward them a hello
-    om.send('Hi!', function(err) {
-        if (err) {
-            console.log("Error send " + err);
-        }
-    });
-});
-
-om.on('commonLikes', function(commonLikes) {
-    console.log('You both like: '+commonLikes.toString());
-})
-
-om.on('recaptchaRequired', function(code) {
-  console.log("Looks like we have to solve this sadly: " + code);
-});
-
-om.on('strangerDisconnected', function() {
-    console.log('stranger has left');
-});
-
-om.on('gotMessage', function(msg) {
-    console.log("Stranger: " + msg);
-
-    // Start typing
-    om.startTyping();
-
-    // Forward the message to clever bot
-    cb.write(msg, function(resp) {
-        // Log the message
-        console.log('You: '+resp['message']);
-
-        // Send the reply
-        om.send(resp['message'], function(err) {
-            if (err) {
-                console.log("Error send " + err);
-            }
-        });
-    });
-});
-
-om.on('disconnected', function() {
-    console.log('You disconnected!');
-});
-
-om.start(function(err) {
-    if (err) {
-        return console.log("Error start " + err);
-    }
-});
-
-/*var Omegle, om, startconv;
-Omegle = require('../lib/omegle').Omegle;
-om = new Omegle();
-om.on('newid', function(data) {
-  console.log('lolhi ' + data);
-  return setTimeout(startconv, 1500);
-});
-om.on('connected', function() {
-  return console.log('yay');
-});
-om.on('recaptchaRequired', function(code) {
-  return console.log("Looks like we have to solve this sadly: " + code);
-});
-om.start(function(err) {
-  if (err) {
-    return console.log("Error start " + err);
-  }
-});
-startconv = function() {
-  return om.send('hi', function(err) {
-    if (err) {
-      console.log("Error send " + err);
-    }
-    return om.disconnect(function(err) {
-      if (err) {
-        return console.log("Error disconnect " + err);
-      }
-    });
-  });
-};*/
