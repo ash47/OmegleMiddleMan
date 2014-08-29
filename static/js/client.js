@@ -8,7 +8,7 @@ $(document).ready(function(){
     */
 
     // Default message to auto send
-    var defaultAutoMessage = 'Hi! How are you?';
+    var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
 
     /*
         Setup chat
@@ -50,6 +50,9 @@ $(document).ready(function(){
         var autoMessage = $('<textarea class="omegleAutoMessage">').attr('type', 'text').val(defaultAutoMessage);
         con.append(autoMessage);
 
+        var nameField = $('<textarea class="nameField">');
+        con.append(nameField);
+
         con.append($('<br>'));
 
         con.append($('<label>').text('Reroll:'));
@@ -72,6 +75,7 @@ $(document).ready(function(){
             send: send,
             addName: addName,
             autoMessage: autoMessage,
+            nameField: nameField,
 
             // Prefix for all broadcast messages
             prefix: ''
@@ -181,6 +185,24 @@ $(document).ready(function(){
         con.isTyping = false;
     }
 
+    // Broadcasts a message to everyone this controller is set to broadcast to
+    function broadcastMessage(con, msg) {
+        for(var key in con.broadcast) {
+            if(con.broadcast[key] != null) {
+                var bt = cons[key];
+
+                // Make sure we are connected
+                if(bt.connected) {
+                    // Send the message
+                    sendMessage(bt, msg);
+
+                    // Add it to our log
+                    addTextLine(bt.field, '<font color="blue">Broadcasted:</font> '+msg);
+                }
+            }
+        }
+    }
+
     // Starts typing on a given controller
     function startTyping(con) {
         if(!con.isTyping) {
@@ -210,6 +232,175 @@ $(document).ready(function(){
             con.searching = false;
             con.client_id = null;
         }
+    }
+
+    // Disconnects someone
+    function doDisconnect(client_id) {
+        // Unhook
+        var con = conMap[client_id];
+        conMap[client_id] = null;
+        con.connected = false;
+        con.client_id = null;
+
+        // Add message to chat
+        addTextLine(con.field, 'The stranger has disconnected!<br><br>');
+
+        // Reset border color
+        con.input.css({
+            border: '4px solid #AAA'
+        });
+
+        // Disconnect on the server
+        socket.emit('omegleDisconnect', client_id);
+
+        // Add the name
+        var msg = con.name+' has disconnected!';
+
+        // Should we broadcast?
+        if(con.addName.is(':checked')) {
+            broadcastMessage(con, msg);
+        }
+
+        // Should we reroll?
+        if(con.roll.is(':checked')) {
+            // Set to searching
+            con.searching = true;
+
+            // Search
+            socket.emit('newOmegle');
+        } else {
+            // Reset button
+            con.button.attr('value' ,'New');
+        }
+    }
+
+    // Command handler
+    function processCommands(con, msg) {
+        var cmds;
+
+        var help = {
+            commands: 'Lists all the commands that are available.',
+            nick: '/nick <name> will change your nick name.',
+            identify: 'Tells you your current nick name.',
+            who: 'Lists everyone in the chat'
+        }
+
+        cmds = {
+            // Displays a list of commands
+            commands: function(con, args) {
+                var lst = '';
+
+                // Build a list of commands:
+                for(var name in cmds) {
+                    if(lst == '') {
+                        lst = name;
+                    } else {
+                        lst = lst+'\n'+name;
+                    }
+
+                    // Check if we have help for this command
+                    if(help[name]) {
+                        lst = lst+' - '+help[name];
+                    }
+                }
+
+                // Send them the list
+                sendMessage(con, 'Commands:\n'+lst);
+            },
+
+            // Changes a user's nick name
+            nick: function(con, args) {
+                // Ensure they gave a name
+                if(args.length <= 1) {
+                    sendMessage(con, 'Usage: /nick <name>');
+                    return;
+                }
+
+                // Remove header
+                args.splice(0, 1);
+
+                // Create the new nick name
+                var newNick = args.join(' ');
+
+                // Check length
+                if(newNick.replace(/ /g, '').length < 3) {
+                    sendMessage(con, 'Your nick name needs to be at least three characters.');
+                    return;
+                }
+
+                // Check if that name is already taken
+                for(var key in cons) {
+                    if(cons[key].connected && cons[key].name.replace(/ /g, '').toLowerCase() == newNick.replace(/ /g, '').toLowerCase()) {
+                        sendMessage(con, 'That nick name is already taken!');
+                        return;
+                    }
+                }
+
+                // Tell everyone it changed
+                broadcastMessage(con, con.name+' is now known as '+newNick);
+
+                // Set it
+                con.name = newNick;
+                con.nameField.val(newNick);
+
+                // Update prefix
+                con.prefix = con.name+': ';
+
+                // Tell the user it was set
+                sendMessage(con, 'You are now known as: '+newNick);
+            },
+
+            // Tells a user their nick name
+            identify: function(con, args) {
+                sendMessage(con, 'Your nick name is: '+con.name);
+            },
+
+            // Lists everyone in the chat
+            who: function(con, args) {
+                var lst = '';
+
+                // Build a list of commands:
+                for(var key in cons) {
+                    // Check if they are connected
+                    if(cons[key].connected) {
+                        // Grab their name
+                        var name = cons[key].name;
+
+                        if(lst == '') {
+                            lst = name;
+                        } else {
+                            lst = lst+'\n'+name;
+                        }
+                    }
+                }
+
+                // Send them the list
+                sendMessage(con, 'Participants:\n'+lst);
+            }
+        }
+
+        // Check if this is a command
+        if(msg.substr(0,1) == '/') {
+            // Grab the args
+            var args = msg.split(' ');
+            args[0] = args[0].substr(1).toLowerCase();
+
+            // Check if the command exists
+            if(cmds[args[0]]) {
+                // Run the command
+                cmds[args[0]](con, args);
+            } else {
+                // Tell them the command does not exist
+                sendMessage(con, 'Unknwon command "'+args[0]+'"');
+            }
+
+
+            // This is a command, stop
+            return true;
+        }
+
+        // Not a command
+        return false;
     }
 
     // Map of connection to con above
@@ -277,25 +468,18 @@ $(document).ready(function(){
             con.name = 'Stranger '+totalConnections;
             con.prefix = con.name+': ';
 
+            // Store their name
+            con.nameField.val(con.name);
+
+            // Tell them their name
+            sendMessage(con, 'You are known as: '+con.name);
+
             // Add the name
             var msg = con.name+' has connected!';
 
             // Should we broadcast?
             if(con.addName.is(':checked')) {
-                for(var key in con.broadcast) {
-                    if(con.broadcast[key] != null) {
-                        var bt = cons[key];
-
-                        // Make sure we are connected
-                        if(bt.connected) {
-                            // Send the message
-                            sendMessage(bt, msg);
-
-                            // Add it to our log
-                            addTextLine(bt.field, '<font color="blue">Broadcasted:</font> '+msg);
-                        }
-                    }
-                }
+                broadcastMessage(con, msg);
             }
         }
     });
@@ -303,6 +487,17 @@ $(document).ready(function(){
     // Omegle is telling us our common likes
     socket.on('omegleCommonLikes', function(client_id, commonLikes) {
         if(conMap[client_id]) {
+            // Loop over the likes
+            for(var key in commonLikes) {
+                console.log(commonLikes[key]);
+                if(commonLikes[key].toLowerCase() == 'nomultirp') {
+                    // Disconnect
+                    doDisconnect(client_id);
+                    return;
+                }
+            }
+
+            // Display the likes
             addTextLine(conMap[client_id].field, 'The stranger likes '+commonLikes.toString());
         }
     });
@@ -310,54 +505,8 @@ $(document).ready(function(){
     // Stranger has disconnected
     socket.on('omegleStrangerDisconnected', function(client_id) {
         if(conMap[client_id]) {
-            addTextLine(conMap[client_id].field, 'The stranger has disconnected!');
-
-            // Unhook
-            var con = conMap[client_id];
-            conMap[client_id] = null;
-            con.connected = false;
-            con.client_id = null;
-
-            // Reset border color
-            con.input.css({
-                border: '4px solid #AAA'
-            });
-
-            // Disconnect on the server
-            socket.emit('omegleDisconnect', client_id);
-
-            // Add the name
-            var msg = con.name+' has disconnected!';
-
-            // Should we broadcast?
-            if(con.addName.is(':checked')) {
-                for(var key in con.broadcast) {
-                    if(con.broadcast[key] != null) {
-                        var bt = cons[key];
-
-                        // Make sure we are connected
-                        if(bt.connected) {
-                            // Send the message
-                            sendMessage(bt, msg);
-
-                            // Add it to our log
-                            addTextLine(bt.field, '<font color="blue">Broadcasted:</font> '+msg);
-                        }
-                    }
-                }
-            }
-
-            // Should we reroll?
-            if(con.roll.is(':checked')) {
-                // Set to searching
-                con.searching = true;
-
-                // Search
-                socket.emit('newOmegle');
-            } else {
-                // Reset button
-                con.button.attr('value' ,'New');
-            }
+            // Do it
+            doDisconnect(client_id);
         }
     });
 
@@ -374,25 +523,16 @@ $(document).ready(function(){
             // Add the message
             addTextLine(con.field, '<font color="red">Stranger:</font> '+msg);
 
-            for(var key in con.broadcast) {
-                if(con.broadcast[key] != null) {
-                    var bt = cons[key];
+            // Check for commands
+            if(processCommands(con, msg)) return;
 
-                    // Make sure we are connected
-                    if(bt.connected) {
-                        // Check if we should add a prefix
-                        if(con.addName.is(':checked')) {
-                            msg = con.prefix + msg;
-                        }
-
-                        // Send the message
-                        sendMessage(bt, msg);
-
-                        // Add it to our log
-                        addTextLine(bt.field, '<font color="blue">Broadcasted:</font> '+msg);
-                    }
-                }
+            // Check if we should add a prefix
+            if(con.addName.is(':checked')) {
+                msg = con.prefix + msg;
             }
+
+            // Broadcast it
+            broadcastMessage(con, msg);
         }
     });
 

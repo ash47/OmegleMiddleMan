@@ -55,13 +55,11 @@ Omegle.prototype.requestKA = function(path, data, callback) {
 };
 
 Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback) {
-    var options, req;
-
     if (data) {
         data = formFormat(data);
     }
 
-    options = {
+    var options = {
         method: method,
         host: this.host,
         port: 80,
@@ -80,7 +78,12 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
         options.headers['Connection'] = 'Keep-Alive';
     }
 
-    req = http.request(options, callback);
+    var req = http.request(options, callback);
+
+    // Handle disconnect error
+    req.on('error', function(error) {
+        console.log('ERROR' + error.message);
+    });
 
     if (data) {
         req.write(data);

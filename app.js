@@ -91,7 +91,9 @@ io.on('connection', function(socket) {
                 'family guy',
                 'american dad',
                 'the simpsons',
-                'rick and morty'
+                'rick and morty',
+                'multiRP',
+                'noMultiRP'
             ]
         });
 
