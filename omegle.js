@@ -66,7 +66,8 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
         path: path,
         headers: {
             'User-Agent': this.userAgent
-        }
+        },
+        agent:false
     };
 
     if (data) {
