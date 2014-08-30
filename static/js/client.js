@@ -91,6 +91,9 @@ $(document).ready(function(){
                 thisCon.searching = true;
                 socket.emit('newOmegle');
 
+                // Add a message
+                addTextLine(thisCon.field, 'Creating a connection...');
+
                 // Change text
                 $(this).attr('value' ,'disconnect');
             } else {
@@ -101,7 +104,7 @@ $(document).ready(function(){
                 $(this).attr('value' ,'New');
 
                 // Add a message
-                addTextLine(thisCon.field, 'You have disconnected!');
+                addTextLine(thisCon.field, 'You have disconnected!<br><br>');
 
                 // Reset border color
                 con.input.css({

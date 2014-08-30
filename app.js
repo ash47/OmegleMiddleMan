@@ -16,6 +16,124 @@ io.on('connection', function(socket) {
     // List of omegle clients for this person
     var omegleClients = {};
 
+    var requiredConnections = 0;
+    var buildingConnection = false;
+    function buildConnections() {
+        // Any connections required?
+        if(!buildingConnection && requiredConnections > 0) {
+            // Stop multiple from happening
+            buildingConnection = true;
+            requiredConnections--;
+
+            // Create the new omegle instance
+            var om = new Omegle({
+                topics: [
+                    'doctor who',
+                    'harry potter',
+                    'south park',
+                    'family guy',
+                    'american dad',
+                    'the simpsons',
+                    'rick and morty',
+                    'multiRP',
+                    'noMultiRP'
+                ]
+            });
+
+            // A store for the clientID
+            var realClientID;
+
+            om.on('newid', function(client_id) {
+                // Store the client
+                omegleClients[client_id] = om;
+
+                // Send this ID to the user
+                socket.emit('newOmegle', client_id);
+
+                // Store client ID
+                realClientID = client_id;
+            });
+
+            // Omegle is finding a partner
+            om.on('waiting', function() {
+                // Tell the client
+                socket.emit('omegleWaiting', realClientID);
+            });
+
+            // Omegle found us a partner
+            om.on('connected', function() {
+                // Tell the client
+                socket.emit('omegleConnected', realClientID);
+
+                // Give a brief delay before making a new connection
+                setTimeout(function() {
+                    // No longer building the connection
+                    buildingConnection = false;
+
+                    // Try to build any remaining connections
+                    buildConnections();
+                }, 100);
+            });
+
+            // Omegle is telling us our common likes
+            om.on('commonLikes', function(commonLikes) {
+                // Tell the client
+                socket.emit('omegleCommonLikes', realClientID, commonLikes);
+            })
+
+            // Recapture
+            om.on('recaptchaRequired', function(code) {
+                console.log("Looks like we have to solve this sadly: " + code);
+            });
+
+            // Stranger has disconnected
+            om.on('strangerDisconnected', function() {
+                // Tell client
+                socket.emit('omegleStrangerDisconnected', realClientID);
+            });
+
+            // Stranger sent us a message
+            om.on('gotMessage', function(msg) {
+                // Tell client
+                socket.emit('omegleGotMessage', realClientID, msg);
+            });
+
+            // We have disconnected
+            om.on('disconnected', function() {
+                // Tell client
+                socket.emit('omegleDisconnected', realClientID);
+            });
+
+            // Stranger started typing
+            om.on('typing', function() {
+                // Tell client
+                socket.emit('omegleTyping', realClientID);
+            });
+
+            // Stranger stopped typing
+            om.on('stoppedTyping', function() {
+                // Tell client
+                socket.emit('omegleStoppedTyping', realClientID);
+            });
+
+            // Connect to a client
+            om.start(function(err) {
+                if (err) {
+                    console.log("Error start " + err);
+                }
+            });
+        }
+    }
+
+    // Creates a new connection
+    function setupNewConnection() {
+        // Another connection is required
+        requiredConnections++;
+
+        // Set the connection up
+        buildConnections();
+    }
+
     // Cleanup a client when they disconnect
     socket.on('disconnect', function(){
         for(var key in omegleClients) {
@@ -82,94 +200,8 @@ io.on('connection', function(socket) {
 
     // Client is asking for a new omegle client
     socket.on('newOmegle', function(){
-        // Create the new omegle instance
-        var om = new Omegle({
-            topics: [
-                'doctor who',
-                'harry potter',
-                'south park',
-                'family guy',
-                'american dad',
-                'the simpsons',
-                'rick and morty',
-                'multiRP',
-                'noMultiRP'
-            ]
-        });
-
-        // A store for the clientID
-        var realClientID;
-
-        om.on('newid', function(client_id) {
-            // Store the client
-            omegleClients[client_id] = om;
-
-            // Send this ID to the user
-            socket.emit('newOmegle', client_id);
-
-            // Store client ID
-            realClientID = client_id;
-        });
-
-        // Omegle is finding a partner
-        om.on('waiting', function() {
-            // Tell the client
-            socket.emit('omegleWaiting', realClientID);
-        });
-
-        // Omegle found us a partner
-        om.on('connected', function() {
-            // Tell the client
-            socket.emit('omegleConnected', realClientID);
-        });
-
-        // Omegle is telling us our common likes
-        om.on('commonLikes', function(commonLikes) {
-            // Tell the client
-            socket.emit('omegleCommonLikes', realClientID, commonLikes);
-        })
-
-        // Recapture
-        om.on('recaptchaRequired', function(code) {
-            console.log("Looks like we have to solve this sadly: " + code);
-        });
-
-        // Stranger has disconnected
-        om.on('strangerDisconnected', function() {
-            // Tell client
-            socket.emit('omegleStrangerDisconnected', realClientID);
-        });
-
-        // Stranger sent us a message
-        om.on('gotMessage', function(msg) {
-            // Tell client
-            socket.emit('omegleGotMessage', realClientID, msg);
-        });
-
-        // We have disconnected
-        om.on('disconnected', function() {
-            // Tell client
-            socket.emit('omegleDisconnected', realClientID);
-        });
-
-        // Stranger started typing
-        om.on('typing', function() {
-            // Tell client
-            socket.emit('omegleTyping', realClientID);
-        });
-
-        // Stranger stopped typing
-        om.on('stoppedTyping', function() {
-            // Tell client
-            socket.emit('omegleStoppedTyping', realClientID);
-        });
-
-        // Connect to a client
-        om.start(function(err) {
-            if (err) {
-                console.log("Error start " + err);
-            }
-        });
+        // Setup a new connection
+        setupNewConnection();
     });
 });
 
