@@ -2,428 +2,55 @@
     Client
 */
 
-$(document).ready(function(){
-    /*
-        Settings
-    */
+// Default message to auto send
+//var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
+var defaultAutoMessage = 'Hi!';
 
-    // Default message to auto send
-    var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
-
+function painMap() {
     /*
         Setup chat
     */
 
     // Create the socket
-    var socket = io();
+    this.socket = io();
+
+    // The total number of connections so far
+    this.totalConnections = 0;
+
+    // Contains all the pains
+    this.pains = [];
+
+    // Create a reference to the pain map
+    var pMap = this;
 
     // Handle disconnect
-    socket.on('disconnect', function () {
-        alert('Lost connection to the server :(');
+    pMap.socket.on('disconnect', function () {
+        // Add disconnect to all pains
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            // Tell the client
+            p.addTextLine('Lost connection to the server :(');
+        }
     });
 
-    // Stores connection states
-    var cons = [];
-
-    // The total number of connections
-    var totalConnections = 0;
-
-    // Adds a new chat pain
-    function addPain() {
-        var mainCon = $('#mainCon');
-
-        var con = $('<div class="omegleContainer">');
-        mainCon.append(con);
-
-        var field = $('<div class="omegleWindow">');
-        con.append(field);
-
-        var input = $('<textarea class="omegleField">');
-        con.append(input);
-
-        var button = $('<input>').attr('type', 'submit').attr('value', 'New');
-        con.append(button);
-
-        var send = $('<input>').attr('type', 'submit').attr('value', 'Send');
-        con.append(send);
-
-        var autoMessage = $('<textarea class="omegleAutoMessage">').attr('type', 'text').val(defaultAutoMessage);
-        con.append(autoMessage);
-
-        var nameField = $('<textarea class="nameField">');
-        con.append(nameField);
-
-        con.append($('<br>'));
-
-        con.append($('<label>').text('Reroll:'));
-        var roll = $('<input>').attr('type', 'checkbox');
-        con.append(roll);
-
-        con.append($('<label>').text('Add Name:'));
-        var addName = $('<input>').attr('type', 'checkbox');
-        con.append(addName);
-
-        con.append($('<label>').text('Broadcast:'));
-
-        // Create a reference
-        var thisCon = {
-            con: con,
-            field: field,
-            input: input,
-            roll: roll,
-            button: button,
-            send: send,
-            addName: addName,
-            autoMessage: autoMessage,
-            nameField: nameField,
-
-            // Prefix for all broadcast messages
-            prefix: ''
-        }
-
-        // Store it
-        cons.push(thisCon);
-
-        // Hook new/disconnect button
-        button.click(function() {
-            // Make sure we aren't already searching, etc
-            if(!thisCon.connected && !thisCon.searching) {
-                thisCon.searching = true;
-                socket.emit('newOmegle');
-
-                // Add a message
-                addTextLine(thisCon.field, 'Creating a connection...');
-
-                // Change text
-                $(this).attr('value' ,'disconnect');
-            } else {
-                // Discconect
-                disconnect(thisCon);
-
-                // Change text
-                $(this).attr('value' ,'New');
-
-                // Add a message
-                addTextLine(thisCon.field, 'You have disconnected!<br><br>');
-
-                // Reset border color
-                con.input.css({
-                    border: '4px solid #AAA'
-                });
-            }
-        });
-
-        // Hook the typing
-        input.on('change keyup paste', function() {
-            // Grab the text
-            var txt = $(this).val();
-
-            if(txt == '') {
-                // Empty text, no longer typing
-                stopTyping(thisCon);
-            } else {
-                // A string
-                startTyping(thisCon);
-            }
-        });
-
-        // Hook press enter to send
-        input.on('keyup', function(e) {
-            if (e.which == 13 && ! e.shiftKey) {
-                // Grab the txt and reset the field
-                var txt = thisCon.input.val();
-                txt = txt.substr(0, txt.length-1)
-                thisCon.input.val('');
-
-                // Do we have a message?
-                if(txt != '') {
-                    // Send the message
-                    sendMessage(thisCon, txt);
-
-                    // Add it to our log
-                    addTextLine(thisCon.field, '<font color="blue">You:</font> '+txt);
-                }
-            }
-        });
-
-        // Hook send button
-        send.click(function() {
-            // Ensure we are connected
-            if(thisCon.connected) {
-                // Grab the txt and reset the field
-                var txt = thisCon.input.val();
-                thisCon.input.val('');
-
-                // Do we have a message?
-                if(txt != '') {
-                    // Send the message
-                    sendMessage(thisCon, txt);
-
-                    // Add it to our log
-                    addTextLine(thisCon.field, '<font color="blue">You:</font> '+txt);
-                }
-            }
-        });
-    }
-
-    // Spawn 5 windows
-    for(var i=0; i<5; i++) {
-        addPain();
-    }
-
-    // Adds text into a container
-    function addTextLine(con, msg) {
-        con.append($('<li>').html(msg));
-
-        // Scroll to the bottom:
-        con.scrollTop(con.prop("scrollHeight"));
-    }
-
-    // Sends a message to the given controller
-    function sendMessage(con, msg) {
-        // Send the message
-        socket.emit('omegleSend', con.client_id, msg);
-
-        // This controller is no longer typing
-        con.isTyping = false;
-    }
-
-    // Broadcasts a message to everyone this controller is set to broadcast to
-    function broadcastMessage(con, msg) {
-        for(var key in con.broadcast) {
-            if(con.broadcast[key] != null) {
-                var bt = cons[key];
-
-                // Make sure we are connected
-                if(bt.connected) {
-                    // Send the message
-                    sendMessage(bt, msg);
-
-                    // Add it to our log
-                    addTextLine(bt.field, '<font color="blue">Broadcasted:</font> '+msg);
-                }
-            }
-        }
-    }
-
-    // Starts typing on a given controller
-    function startTyping(con) {
-        if(!con.isTyping) {
-            // Send the message
-            socket.emit('omegleTyping', con.client_id);
-
-            // This channel is now typing
-            con.isTyping = true;
-        }
-    }
-
-    // Stops typing
-    function stopTyping(con) {
-        if(con.isTyping) {
-            con.isTyping = false;
-            socket.emit('omegleStopTyping', con.client_id);
-        }
-    }
-
-    // Disconnects a controller
-    function disconnect(con) {
-        // Check if we are already connected
-        if(con.connected) {
-            // Disconnect
-            socket.emit('omegleDisconnect', con.client_id);
-            con.connected = false;
-            con.searching = false;
-            con.client_id = null;
-        }
-    }
-
-    // Disconnects someone
-    function doDisconnect(client_id) {
-        // Unhook
-        var con = conMap[client_id];
-        conMap[client_id] = null;
-        con.connected = false;
-        con.client_id = null;
-
-        // Add message to chat
-        addTextLine(con.field, 'The stranger has disconnected!<br><br>');
-
-        // Reset border color
-        con.input.css({
-            border: '4px solid #AAA'
-        });
-
-        // Disconnect on the server
-        socket.emit('omegleDisconnect', client_id);
-
-        // Add the name
-        var msg = con.name+' has disconnected!';
-
-        // Should we broadcast?
-        if(con.addName.is(':checked')) {
-            broadcastMessage(con, msg);
-        }
-
-        // Should we reroll?
-        if(con.roll.is(':checked')) {
-            // Set to searching
-            con.searching = true;
-
-            // Search
-            socket.emit('newOmegle');
-        } else {
-            // Reset button
-            con.button.attr('value' ,'New');
-        }
-    }
-
-    // Command handler
-    function processCommands(con, msg) {
-        var cmds;
-
-        var help = {
-            commands: 'Lists all the commands that are available.',
-            nick: '/nick <name> will change your nick name.',
-            identify: 'Tells you your current nick name.',
-            who: 'Lists everyone in the chat'
-        }
-
-        cmds = {
-            // Displays a list of commands
-            commands: function(con, args) {
-                var lst = '';
-
-                // Build a list of commands:
-                for(var name in cmds) {
-                    if(lst == '') {
-                        lst = name;
-                    } else {
-                        lst = lst+'\n'+name;
-                    }
-
-                    // Check if we have help for this command
-                    if(help[name]) {
-                        lst = lst+' - '+help[name];
-                    }
-                }
-
-                // Send them the list
-                sendMessage(con, 'Commands:\n'+lst);
-            },
-
-            // Changes a user's nick name
-            nick: function(con, args) {
-                // Ensure they gave a name
-                if(args.length <= 1) {
-                    sendMessage(con, 'Usage: /nick <name>');
-                    return;
-                }
-
-                // Remove header
-                args.splice(0, 1);
-
-                // Create the new nick name
-                var newNick = args.join(' ');
-
-                // Check length
-                if(newNick.replace(/ /g, '').length < 3) {
-                    sendMessage(con, 'Your nick name needs to be at least three characters.');
-                    return;
-                }
-
-                // Check if that name is already taken
-                for(var key in cons) {
-                    if(cons[key].connected && cons[key].name.replace(/ /g, '').toLowerCase() == newNick.replace(/ /g, '').toLowerCase()) {
-                        sendMessage(con, 'That nick name is already taken!');
-                        return;
-                    }
-                }
-
-                // Tell everyone it changed
-                broadcastMessage(con, con.name+' is now known as '+newNick);
-
-                // Set it
-                con.name = newNick;
-                con.nameField.val(newNick);
-
-                // Update prefix
-                con.prefix = con.name+': ';
-
-                // Tell the user it was set
-                sendMessage(con, 'You are now known as: '+newNick);
-            },
-
-            // Tells a user their nick name
-            identify: function(con, args) {
-                sendMessage(con, 'Your nick name is: '+con.name);
-            },
-
-            // Lists everyone in the chat
-            who: function(con, args) {
-                var lst = '';
-
-                // Build a list of commands:
-                for(var key in cons) {
-                    // Check if they are connected
-                    if(cons[key].connected) {
-                        // Grab their name
-                        var name = cons[key].name;
-
-                        if(lst == '') {
-                            lst = name;
-                        } else {
-                            lst = lst+'\n'+name;
-                        }
-                    }
-                }
-
-                // Send them the list
-                sendMessage(con, 'Participants:\n'+lst);
-            }
-        }
-
-        // Check if this is a command
-        if(msg.substr(0,1) == '/') {
-            // Grab the args
-            var args = msg.split(' ');
-            args[0] = args[0].substr(1).toLowerCase();
-
-            // Check if the command exists
-            if(cmds[args[0]]) {
-                // Run the command
-                cmds[args[0]](con, args);
-            } else {
-                // Tell them the command does not exist
-                sendMessage(con, 'Unknwon command "'+args[0]+'"');
-            }
-
-
-            // This is a command, stop
-            return true;
-        }
-
-        // Not a command
-        return false;
-    }
-
-    // Map of connection to con above
-    var conMap = {};
-
-    /*
-        Hook socket
-    */
-
     // Server created a new omegle instance for us
-    socket.on('newOmegle', function(client_id) {
+    pMap.socket.on('newOmegle', function(client_id) {
         // Search for a new pain
         var found = false;
-        for(var con in cons) {
-            if(cons[con].searching) {
-                // Left pain wanted it
-                cons[con].searching = false;
-                cons[con].connected = true;
-                cons[con].client_id = client_id;
-                conMap[client_id] = cons[con];
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            if(p.searching) {
+                // Found a connection
+                p.searching = false;
+                p.connected = true;
+                p.client_id = client_id;
+
+                // Create the text
+                p.updateButton('Disconnect');
 
                 // We have found a match
                 found = true;
@@ -434,201 +61,563 @@ $(document).ready(function(){
         // Did we find a pain that needed it?
         if(!found) {
             // Unwanted connection, just drop it
-            socket.emit('omegleDisconnect', client_id);
+            pMap.socket.emit('omegleDisconnect', client_id);
         }
     });
 
     // Omegle is finding us a partner
-    socket.on('omegleWaiting', function(client_id) {
-        if(conMap[client_id]) {
-            addTextLine(conMap[client_id].field, 'Searching for a stranger...');
+    pMap.socket.on('omegleWaiting', function(client_id) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            p.addTextLine('Searching for a stranger...');
         }
     });
 
     // Omegle connected us to someone
-    socket.on('omegleConnected', function(client_id) {
-        var con = conMap[client_id];
+    pMap.socket.on('omegleConnected', function(client_id) {
+        var p = pMap.findByID(client_id);
 
         // Increase total number of connections
-        totalConnections++;
+        pMap.totalConnections++;
 
-        if(con) {
-            addTextLine(con.field, 'A stranger was connected!');
+        if(p) {
+            p.addTextLine('A stranger was connected!');
 
             // Grab any auto text messages
-            var txt = con.autoMessage.val();
+            var txt = p.autoMessage.val();
 
             // Do we have an auto message?
             if(txt != '') {
-                // Send the message
-                sendMessage(con, txt);
+                // Start typing
+                p.startTyping();
 
-                // Add it to our log
-                addTextLine(con.field, '<font color="blue">Auto:</font> '+txt);
+                // Give a short delay before sending the message
+                setTimeout(function() {
+                    // Check if the same client is connected
+                    if(p.client_id == client_id) {
+                        // Send the message
+                        p.sendMessage(txt);
+
+                        // Add it to our log
+                        p.addTextLine('<font color="blue">Auto:</font> '+txt);
+                    }
+                }, 1500);
             }
 
             // Generate a new name
-            con.name = 'Stranger '+totalConnections;
-            con.prefix = con.name+': ';
+            p.name = 'Stranger '+pMap.totalConnections;
+            p.prefix = p.name+': ';
 
             // Store their name
-            con.nameField.val(con.name);
+            p.nameField.val(p.name);
 
             // Tell them their name
-            sendMessage(con, 'You are known as: '+con.name);
+            //sendMessage(con, 'You are known as: '+con.name);
 
             // Add the name
-            var msg = con.name+' has connected!';
+            var msg = p.name+' has connected!';
 
             // Should we broadcast?
-            if(con.addName.is(':checked')) {
-                broadcastMessage(con, msg);
+            if(p.addName.is(':checked')) {
+                p.broadcastMessage(msg);
             }
         }
     });
 
     // Omegle is telling us our common likes
-    socket.on('omegleCommonLikes', function(client_id, commonLikes) {
-        if(conMap[client_id]) {
+    pMap.socket.on('omegleCommonLikes', function(client_id, commonLikes) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
             // Loop over the likes
             for(var key in commonLikes) {
-                console.log(commonLikes[key]);
                 if(commonLikes[key].toLowerCase() == 'nomultirp') {
                     // Disconnect
-                    doDisconnect(client_id);
+                    pMap.doDisconnect(client_id);
                     return;
                 }
             }
 
             // Display the likes
-            addTextLine(conMap[client_id].field, 'The stranger likes '+commonLikes.toString());
+            p.addTextLine('The stranger likes '+commonLikes.toString());
         }
     });
 
     // Stranger has disconnected
-    socket.on('omegleStrangerDisconnected', function(client_id) {
-        if(conMap[client_id]) {
-            // Do it
-            doDisconnect(client_id);
-        }
+    pMap.socket.on('omegleStrangerDisconnected', function(client_id) {
+        // Do it
+        pMap.doDisconnect(client_id);
     });
 
     // We got a message
-    socket.on('omegleGotMessage', function(client_id, msg) {
-        var con = conMap[client_id];
+    pMap.socket.on('omegleGotMessage', function(client_id, msg) {
+        var p = pMap.findByID(client_id);
 
-        if(con != null) {
+        if(p) {
             // They are no longer typing
-            con.input.css({
-                border: '4px solid #AAA'
-            });
+            p.updateTalking(false);
 
             // Add the message
-            addTextLine(con.field, '<font color="red">Stranger:</font> '+msg);
+            p.addTextLine('<font color="red">Stranger:</font> '+msg);
 
             // Check for commands
-            if(processCommands(con, msg)) return;
+            //if(processCommands(con, msg)) return;
 
             // Check if we should add a prefix
-            if(con.addName.is(':checked')) {
-                msg = con.prefix + msg;
+            if(p.addName.is(':checked')) {
+                msg = p.prefix + msg;
             }
 
             // Broadcast it
-            broadcastMessage(con, msg);
+            p.broadcastMessage(msg);
         }
     });
 
     // Stranger started typing
-    socket.on('omegleTyping', function(client_id) {
-        var con = conMap[client_id];
+    pMap.socket.on('omegleTyping', function(client_id) {
+        var p = pMap.findByID(client_id);
 
-        if(con != null) {
-            con.input.css({
-                border: '4px solid #000'
-            });
+        if(p) {
+            // Show that they're talking
+            p.updateTalking(true);
 
-            for(var key in con.broadcast) {
-                if(con.broadcast[key] != null) {
-                    var bt = cons[key];
-
-                    // Make sure we are connected
-                    if(bt.connected) {
-                        startTyping(bt);
-                    }
-                }
-            }
+            // Broadcast the typing event
+            p.broadcastTyping();
         }
     });
 
     // Stranger stops typing
-    socket.on('omegleStoppedTyping', function(client_id) {
-        var con = conMap[client_id];
+    pMap.socket.on('omegleStoppedTyping', function(client_id) {
+        var p = pMap.findByID(client_id);
 
-        if(con != null) {
-            con.input.css({
-                border: '4px solid #AAA'
-            });
+        if(p) {
+            p.updateTalking(false);
         }
     });
 
     // We have disconnected
-    socket.on('omegleDisconnected', function(client_id) {
-        if(conMap[client_id]) {
-            addTextLine(conMap[client_id].field, 'You have disconnected!');
+    pMap.socket.on('omegleDisconnected', function(client_id) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            p.addTextLine('You have disconnected!');
 
             // Unhook
-            var con = conMap[client_id];
-            conMap[client_id] = null;
-            con.connected = false;
-            con.client_id = null;
+            p.connected = false;
+            p.client_id = null;
 
             // Reset button
-            con.button.attr('value' ,'New');
+            p.updateButton('New');
 
             // Disconnect on the server
-            socket.emit('omegleDisconnect', client_id);
+            p.socket.emit('omegleDisconnect', client_id);
+        }
+    });
+}
+
+// Sets up a new pain
+painMap.prototype.setupPain = function() {
+    // Create a new pain
+    var p = new pain(this.socket);
+
+    // Store the pain
+    this.pains.push(p);
+
+    // Update the broadcasting
+    this.updateBroadcast();
+
+    // Store a reference back to this painMap
+    p.painMap = this;
+}
+
+painMap.prototype.updateBroadcast = function() {
+    for(var key=0; key < this.pains.length; key++) {
+        // Grab a key
+        var p = this.pains[key];
+
+        // Build a list of previous values
+        var values = [];
+        for(var b = 0; b < p.broadcastFields.length; b++) {
+            values.push(p.broadcastFields[b].is(':checked'));
+        }
+
+        // Empty the broadcast holder
+        p.broadcast.empty();
+        p.broadcastFields = [];
+
+        // Add a checkbox for all windows
+        for(var key2=0; key2 < this.pains.length; key2++) {
+            var p2 = this.pains[key2];
+
+            // Create and store the checkbox
+            var tick = $('<input type="checkbox">');
+            p.broadcast.append(tick);
+            p.broadcastFields.push(tick);
+
+            // Check if the tick is needed
+            if(p == p2) {
+                // Disable the checkbox
+                tick.prop("disabled", true);
+            }
+
+            // Copy in old value
+            if(values.length > 0) {
+                tick.prop('checked', values.shift());
+            }
+        }
+    }
+}
+
+// Finds a pain by client_id
+painMap.prototype.findByID = function(client_id, remove) {
+    // Loop over all pains
+    for(var key in this.pains) {
+        // Grab the pain
+        var p = this.pains[key];
+
+        // Check if this is the one we were looking for
+        if(p.client_id == client_id) {
+            // Check if we need to remove it
+            if(remove) {
+                // Remove the pain
+                this.pains.splice(key);
+            }
+
+            return p;
+        }
+    }
+
+    // Nothing found
+    return null;
+}
+
+// Disconnects someone
+painMap.prototype.doDisconnect = function(client_id) {
+    // Find and remove the pain
+    var p = this.findByID(client_id);
+    if(!p) return;
+
+    // Unhook
+    p.connected = false;
+    p.client_id = null;
+
+    // Add message to chat
+    p.addTextLine('The stranger has disconnected!<br><br>');
+
+    // Reset border color
+    p.updateTalking(false);
+
+    // Disconnect on the server
+    p.socket.emit('omegleDisconnect', client_id);
+
+    // Should we broadcast?
+    if(p.addName.is(':checked')) {
+        // Send the message to everyone
+        p.broadcastMessage(p.name+' has disconnected!');
+    }
+
+    // Should we reroll?
+    if(p.roll.is(':checked')) {
+        // Set to searching
+        p.searching = true;
+
+        // Search
+        p.socket.emit('newOmegle');
+
+        // Update button
+        p.updateButton('Cancel Search');
+    } else {
+        // Reset button
+        p.updateButton('New');
+    }
+}
+
+// Creates a new pain
+function pain(socket) {
+    // The ID of our connected client
+    this.client_id = null;
+
+    // If we are connected or not
+    this.connected = false;
+
+    // If we are searching or not
+    this.searching = false;
+
+    // Store the socket
+    this.socket = socket;
+
+    /*
+        Create and setup the interface
+    */
+
+    var mainCon = $('#mainCon');
+
+    this.con = $('<div class="omegleContainer">');
+    mainCon.append(this.con);
+
+    this.field = $('<div class="omegleWindow">');
+    this.con.append(this.field);
+
+    this.input = $('<textarea class="omegleField">');
+    this.con.append(this.input);
+
+    this.button = $('<input>').attr('type', 'submit').attr('value', 'New');
+    this.con.append(this.button);
+
+    this.send = $('<input>').attr('type', 'submit').attr('value', 'Send');
+    this.con.append(this.send);
+
+    this.autoMessage = $('<textarea class="omegleAutoMessage">').attr('type', 'text').val(defaultAutoMessage);
+    this.con.append(this.autoMessage);
+
+    this.nameField = $('<textarea class="nameField">');
+    this.con.append(this.nameField);
+
+    this.con.append($('<br>'));
+
+    this.con.append($('<label>').text('Reroll:'));
+    this.roll = $('<input>').attr('type', 'checkbox');
+    this.con.append(this.roll);
+
+    this.con.append($('<label>').text('Add Name:'));
+    this.addName = $('<input>').attr('type', 'checkbox');
+    this.con.append(this.addName);
+
+    this.con.append($('<label>').text('Broadcast:'));
+    this.broadcast = $('<div class="omegleBroadcast">');
+    this.con.append(this.broadcast);
+
+    this.broadcastFields = [];
+
+    // Grab a reference to the pain
+    var pain = this;
+
+    // Hook new/disconnect button
+    pain.button.click(function() {
+        // No longer talking
+        pain.updateTalking(false);
+
+        if(pain.connected) {
+            // We need to disconnect
+
+            // Discconect
+            pain.disconnect();
+
+            // Change text
+            pain.updateButton('New');
+
+            // Add a message
+            pain.addTextLine('You have disconnected!<br><br>');
+        } else if(pain.searching) {
+            // We need to cancel our search
+
+            // Discconect
+            pain.disconnect();
+
+            // Change text
+            pain.updateButton('New');
+
+            // Add a message
+            pain.addTextLine('Cancelled search!<br><br>');
+        } else {
+            // We need to create a connection
+
+            // We are now searching
+            pain.searching = true;
+            pain.socket.emit('newOmegle');
+
+            // Add a message
+            pain.addTextLine('Creating a connection...');
+
+            // Change text
+            pain.updateButton('Cancel Search');
         }
     });
 
-    /*
-        Create broadcast buttons
-    */
+    // Hook the typing
+    pain.input.on('change keyup paste', function() {
+        // Grab the text
+        var txt = $(this).val();
 
-    for(var con in cons) {
-        (function() {
-            // Grab a reference to the con
-            var thisCon = cons[con];
+        if(txt == '') {
+            // Empty text, no longer typing
+            pain.stopTyping();
+        } else {
+            // A string
+            pain.startTyping();
+        }
+    });
 
-            // Reset broadcasters
-            thisCon.broadcast = {};
+    // Hook press enter to send
+    pain.input.on('keyup', function(e) {
+        if (e.which == 13 && ! e.shiftKey) {
+            // Grab the txt and reset the field
+            var txt = pain.input.val();
+            txt = txt.substr(0, txt.length-1)
+            pain.input.val('');
 
-            // Build broadcasters
-            for(var con2 in cons) {
-                (function() {
-                    var thisCon2 = cons[con2];
-                    var con3 = con2;
+            // Do we have a message?
+            if(txt != '') {
+                // Send the message
+                pain.sendMessage(txt);
 
-                    // Don't hook into ourself
-                    if(thisCon2 != thisCon) {
-                        var tick = $('<input type="checkbox">');
-                        tick.change(function() {
-                            if($(this).is(':checked')) {
-                                // Store the broadcast
-                                thisCon.broadcast[con3] = true;
-                            } else {
-                                // Remove the broadcast
-                                thisCon.broadcast[con3] = null;
-                            }
-                        });
-
-                        // Add the tick box
-                        thisCon.con.append(tick);
-                    } else {
-                        thisCon.con.append($('<label>').text('_'));
-                    }
-                })();
+                // Add it to our log
+                pain.addTextLine('<font color="blue">You:</font> '+txt);
             }
-        })();
+        }
+    });
+
+    // Hook send button
+    pain.send.click(function() {
+        // Ensure we are connected
+        if(pain.connected) {
+            // Grab the txt and reset the field
+            var txt = pain.input.val();
+            pain.input.val('');
+
+            // Do we have a message?
+            if(txt != '') {
+                // Send the message
+                pain.sendMessage(txt);
+
+                // Add it to our log
+                pain.addTextLine('<font color="blue">You:</font> '+txt);
+            }
+        }
+    });
+}
+
+// Updates a button
+pain.prototype.updateButton = function(newText) {
+    // Update the text
+    this.button.attr('value' ,newText);
+}
+
+// Starts typing on a given controller
+pain.prototype.startTyping = function() {
+    if(this.connected && !this.isTyping) {
+        // Send the message
+        this.socket.emit('omegleTyping', this.client_id);
+
+        // This channel is now typing
+        this.isTyping = true;
     }
+}
+
+// Stops typing
+pain.prototype.stopTyping = function() {
+    if(this.connected && this.isTyping) {
+        socket.emit('omegleStopTyping', this.client_id);
+    }
+
+    this.isTyping = false;
+}
+
+// Updates the talking state of this pain
+pain.prototype.updateTalking = function(talking) {
+    if(talking) {
+        // They are talking
+        this.input.css({
+            border: '4px solid #000'
+        });
+    } else {
+        // They are no longer talking
+        this.input.css({
+            border: '4px solid #AAA'
+        });
+    }
+}
+
+// Sends a message to the given controller
+pain.prototype.sendMessage = function(msg) {
+    // Ensure we are connected
+    if(this.connected) {
+        // Send the message
+        this.socket.emit('omegleSend', this.client_id, msg);
+    }
+
+    // This controller is no longer typing
+    this.isTyping = false;
+}
+
+// Broadcasts a message to everyone this controller is set to broadcast to
+pain.prototype.broadcastMessage = function(msg) {
+    var pains = this.painMap.pains;
+
+    // Loop over all pains
+    for(var i=0; i<pains.length; i++) {
+        // Attempt to grab a pain
+        var p = pains[i];
+        if(p && p != this && p.connected) {
+            // Attempt to grab the tick that coorosponds with it
+            var tick = this.broadcastFields[i];
+            if(tick) {
+                // Check if it's ticked
+                if(tick.is(':checked')) {
+                    // Send the message
+                    p.sendMessage(msg);
+
+                    // Add it to our log
+                    p.addTextLine('<font color="blue">Broadcasted:</font> '+msg);
+                }
+            }
+        }
+    }
+}
+
+// Broadcasts a message to everyone this controller is set to broadcast to
+pain.prototype.broadcastTyping = function() {
+    var pains = this.painMap.pains;
+
+    // Loop over all pains
+    for(var i=0; i<pains.length; i++) {
+        // Attempt to grab a pain
+        var p = pains[i];
+        if(p && p != this) {
+            // Attempt to grab the tick that coorosponds with it
+            var tick = this.broadcastFields[i];
+            if(tick) {
+                // Check if it's ticked
+                if(tick.is(':checked')) {
+                    // Send the message
+                    p.startTyping();
+                }
+            }
+        }
+    }
+}
+
+
+// Adds a line of text
+pain.prototype.addTextLine = function(msg) {
+    this.field.append($('<li>').html(msg));
+
+    // Scroll to the bottom:
+    this.field.scrollTop(this.field.prop("scrollHeight"));
+}
+
+// Disconnects if we are connected
+pain.prototype.disconnect = function() {
+    // Check if we are already connected
+    if(this.connected) {
+        // Disconnect
+        this.socket.emit('omegleDisconnect', this.client_id);
+    }
+
+    // Reset vars
+    this.connected = false;
+    this.searching = false;
+    this.client_id = null;
+}
+
+$(document).ready(function(){
+    // Create the pain manager
+    var pains = new painMap();
+
+    // Hook the new window button
+    $('#newWindow').click(function() {
+        // Setup a new pain
+        pains.setupPain();
+    });
 });

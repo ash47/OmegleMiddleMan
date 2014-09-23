@@ -43,11 +43,11 @@ function Omegle(args) {
 util.inherits(Omegle, EventEmitter);
 
 Omegle.prototype.requestGet = function(path, callback) {
-    return this.requestFull('GET', path, void 0, void 0, callback);
+    return this.requestFull('GET', path, false, true, callback);
 };
 
 Omegle.prototype.requestPost = function(path, data, callback) {
-    return this.requestFull('POST', path, data, void 0, callback);
+    return this.requestFull('POST', path, data, true, callback);
 };
 
 Omegle.prototype.requestKA = function(path, data, callback) {

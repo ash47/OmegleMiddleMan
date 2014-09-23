@@ -36,7 +36,14 @@ io.on('connection', function(socket) {
                     'the simpsons',
                     'rick and morty',
                     'multiRP',
-                    'noMultiRP'
+                    'noMultiRP',
+                    'firsttime1',
+                    'gingerfirsttime',
+                    'breaking bad',
+                    'supernatural',
+                    'soul activity',
+                    'jackandjess',
+                    'Supernatural'
                 ]
             });
 
