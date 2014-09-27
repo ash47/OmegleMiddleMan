@@ -25,11 +25,17 @@ function Omegle(args) {
         this.use_likes = 1;
     }
 
-    // Generate a randomID
-    this.randid = '';
-    var randData = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    for(var i=0; i<8; i++) {
-        this.randid += randData.charAt(Math.floor(Math.random() * randData.length));
+    // Attempt to copy the random ID in
+    if(args.randid) {
+        // It exists, copy it
+        this.randid = args.randid;
+    } else {
+        // Generate a randomID
+        this.randid = '';
+        var randData = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+        for(var i=0; i<8; i++) {
+            this.randid += randData.charAt(Math.floor(Math.random() * randData.length));
+        }
     }
 
     // Reset our ID when the stranger disconnects
@@ -55,10 +61,16 @@ Omegle.prototype.requestKA = function(path, data, callback) {
 };
 
 Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback) {
+    // Grab a reference to this
+    var thisOmegle = this;
+
+    // Grab form data
+    var formData;
     if (data) {
-        data = formFormat(data);
+        formData = formFormat(data);
     }
 
+    // Format the options
     var options = {
         method: method,
         host: this.host,
@@ -70,24 +82,32 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
         agent:false
     };
 
-    if (data) {
+    // Add headers for form data
+    if (formData) {
         options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-        options.headers['Content-Length'] = data.length;
+        options.headers['Content-Length'] = formData.length;
     }
 
+    // Setup the keep alive header
     if (keepAlive) {
         options.headers['Connection'] = 'Keep-Alive';
     }
 
+    // Create the request
     var req = http.request(options, callback);
 
     // Handle disconnect error
     req.on('error', function(error) {
+        // Log the error
         console.log('ERROR' + error.message);
+
+        // Resend the message
+        thisOmegle.requestFull(method, path, data, keepAlive, callback);
     });
 
-    if (data) {
-        req.write(data);
+    // Submit form data
+    if (formData) {
+        req.write(formData);
     }
 
     return req.end();

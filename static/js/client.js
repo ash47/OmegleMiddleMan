@@ -6,6 +6,26 @@
 //var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
 var defaultAutoMessage = 'Hi!';
 
+// Default topics
+var defaultTopics = [
+    'doctor who',
+    'harry potter',
+    'south park',
+    'family guy',
+    'american dad',
+    'the simpsons',
+    'rick and morty',
+    'multiRP',
+    'noMultiRP',
+    'firsttime1',
+    'gingerfirsttime',
+    'breaking bad',
+    'supernatural',
+    'soul activity',
+    'jackandjess',
+    'Supernatural'
+].join();
+
 function painMap() {
     /*
         Setup chat
@@ -36,14 +56,14 @@ function painMap() {
     });
 
     // Server created a new omegle instance for us
-    pMap.socket.on('newOmegle', function(client_id) {
+    pMap.socket.on('newOmegle', function(client_id, args) {
         // Search for a new pain
         var found = false;
         for(var key in pMap.pains) {
             // Grab the container
             var p = pMap.pains[key];
 
-            if(p.searching) {
+            if(p.searching && p.painID == args.painID) {
                 // Found a connection
                 p.searching = false;
                 p.connected = true;
@@ -319,19 +339,16 @@ painMap.prototype.doDisconnect = function(client_id) {
 
     // Should we reroll?
     if(p.roll.is(':checked')) {
-        // Set to searching
-        p.searching = true;
-
-        // Search
-        p.socket.emit('newOmegle');
-
-        // Update button
-        p.updateButton('Cancel Search');
+        // Create a connection
+        p.createConnection();
     } else {
         // Reset button
         p.updateButton('New');
     }
 }
+
+// The total number of pains
+var totalPains = 0;
 
 // Creates a new pain
 function pain(socket) {
@@ -346,6 +363,12 @@ function pain(socket) {
 
     // Store the socket
     this.socket = socket;
+
+    // Store the painID
+    this.painID = ++totalPains;
+
+    // Generate a new random ID
+    this.newRandid();
 
     /*
         Create and setup the interface
@@ -388,6 +411,10 @@ function pain(socket) {
     this.broadcast = $('<div class="omegleBroadcast">');
     this.con.append(this.broadcast);
 
+    this.topicField = $('<textarea class="topicField">');
+    this.con.append(this.topicField);
+    this.topicField.val(defaultTopics);
+
     this.broadcastFields = [];
 
     // Grab a reference to the pain
@@ -423,15 +450,7 @@ function pain(socket) {
         } else {
             // We need to create a connection
 
-            // We are now searching
-            pain.searching = true;
-            pain.socket.emit('newOmegle');
-
-            // Add a message
-            pain.addTextLine('Creating a connection...');
-
-            // Change text
-            pain.updateButton('Cancel Search');
+            pain.createConnection();
         }
     });
 
@@ -486,6 +505,38 @@ function pain(socket) {
             }
         }
     });
+}
+
+// Creates a connectiom for this pain
+pain.prototype.createConnection = function() {
+    // We are now searching
+    this.searching = true;
+    this.socket.emit('newOmegle', {
+        painID: this.painID,
+        topics: this.getTopics(),
+        randid: this.randid
+    });
+
+    // Add a message
+    this.addTextLine('Creating a connection...');
+
+    // Change text
+    this.updateButton('Cancel Search');
+}
+
+// Generates a new randid
+pain.prototype.newRandid = function() {
+    this.randid = '';
+    var randData = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    for(var i=0; i<8; i++) {
+        this.randid += randData.charAt(Math.floor(Math.random() * randData.length));
+    }
+}
+
+// Returns this pain's topics (as an array)
+pain.prototype.getTopics = function() {
+    // Return the topics
+    return this.topicField.val().split(',');
 }
 
 // Updates a button

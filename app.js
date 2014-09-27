@@ -16,17 +16,17 @@ io.on('connection', function(socket) {
     // List of omegle clients for this person
     var omegleClients = {};
 
-    var requiredConnections = 0;
+    var requiredConnections = [];
     var buildingConnection = false;
     function buildConnections() {
         // Any connections required?
-        if(!buildingConnection && requiredConnections > 0) {
+        if(!buildingConnection && requiredConnections.length > 0) {
             // Stop multiple from happening
             buildingConnection = true;
-            requiredConnections--;
+            var args = requiredConnections.shift();
 
             // Create the new omegle instance
-            var om = new Omegle({
+            var om = new Omegle(args/*{
                 topics: [
                     'doctor who',
                     'harry potter',
@@ -45,7 +45,7 @@ io.on('connection', function(socket) {
                     'jackandjess',
                     'Supernatural'
                 ]
-            });
+            }*/);
 
             // A store for the clientID
             var realClientID;
@@ -55,7 +55,7 @@ io.on('connection', function(socket) {
                 omegleClients[client_id] = om;
 
                 // Send this ID to the user
-                socket.emit('newOmegle', client_id);
+                socket.emit('newOmegle', client_id, args);
 
                 // Store client ID
                 realClientID = client_id;
@@ -133,9 +133,12 @@ io.on('connection', function(socket) {
     }
 
     // Creates a new connection
-    function setupNewConnection() {
+    function setupNewConnection(args) {
+        // Ensure we have args
+        if(args == null) args = {};
+
         // Another connection is required
-        requiredConnections++;
+        requiredConnections.push(args);
 
         // Set the connection up
         buildConnections();
@@ -206,9 +209,9 @@ io.on('connection', function(socket) {
     });
 
     // Client is asking for a new omegle client
-    socket.on('newOmegle', function(){
+    socket.on('newOmegle', function(args){
         // Setup a new connection
-        setupNewConnection();
+        setupNewConnection(args);
     });
 });
 
