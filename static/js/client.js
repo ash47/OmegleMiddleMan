@@ -24,7 +24,8 @@ var defaultTopics = [
     'soul eater',
     'jackandjess',
     'Supernatural',
-    'zoemonster'
+    'zoemonster',
+    'KiraHatesCats'
 ].join();
 
 function painMap() {
