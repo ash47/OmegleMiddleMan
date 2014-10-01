@@ -7,6 +7,8 @@ app.use(express.static(__dirname + '/static'));
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var Cleverbot = require('cleverbot-node');
+
 app.get('/', function(req, res) {
     res.sendFile(__dirname+'/static/index.htm');
 });
@@ -15,6 +17,9 @@ app.get('/', function(req, res) {
 io.on('connection', function(socket) {
     // List of omegle clients for this person
     var omegleClients = {};
+
+    // List of clever bot clients
+    var cleverClients = {};
 
     var requiredConnections = [];
     var buildingConnection = false;
@@ -26,26 +31,7 @@ io.on('connection', function(socket) {
             var args = requiredConnections.shift();
 
             // Create the new omegle instance
-            var om = new Omegle(args/*{
-                topics: [
-                    'doctor who',
-                    'harry potter',
-                    'south park',
-                    'family guy',
-                    'american dad',
-                    'the simpsons',
-                    'rick and morty',
-                    'multiRP',
-                    'noMultiRP',
-                    'firsttime1',
-                    'gingerfirsttime',
-                    'breaking bad',
-                    'supernatural',
-                    'soul activity',
-                    'jackandjess',
-                    'Supernatural'
-                ]
-            }*/);
+            var om = new Omegle(args);
 
             // A store for the clientID
             var realClientID;
@@ -155,6 +141,12 @@ io.on('connection', function(socket) {
             // Remove reference to it
             omegleClients[key] = null;
         }
+
+        for(var key in cleverClients) {
+            if(cleverClients[key] != null) {
+                delete cleverClients[key];
+            }
+        }
     });
 
     // Client wants us to disconnect a stranger
@@ -212,6 +204,31 @@ io.on('connection', function(socket) {
     socket.on('newOmegle', function(args){
         // Setup a new connection
         setupNewConnection(args);
+    });
+
+    // Client is asking for a new clever client
+    socket.on('newClever', function(args){
+        // Find the first free clientID
+        var i = 0;
+        while(cleverClients['clever'+(++i)] != null) {};
+
+        // Create the bot
+        cleverClients['clever'+i] = new Cleverbot();
+
+        // Forward the handler to them
+        socket.emit('newClever', 'clever'+i, args);
+    });
+
+    // Send a message to clever bot
+    socket.on('cleverSend', function(client_id, msg){
+        // Check if the client even exists
+        if(cleverClients[client_id]) {
+            // Send the message
+            cleverClients[client_id].write(msg, function(resp) {
+                // Forward message to our client
+                socket.emit('omegleGotMessage', client_id, resp['message']);
+            });
+        }
     });
 });
 

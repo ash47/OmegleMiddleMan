@@ -21,9 +21,10 @@ var defaultTopics = [
     'gingerfirsttime',
     'breaking bad',
     'supernatural',
-    'soul activity',
+    'soul eater',
     'jackandjess',
-    'Supernatural'
+    'Supernatural',
+    'zoemonster'
 ].join();
 
 function painMap() {
@@ -85,6 +86,46 @@ function painMap() {
         }
     });
 
+    // Server created a new clever instance for us
+    pMap.socket.on('newClever', function(client_id, args) {
+        // Search for a new pain
+        var found = false;
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            if(p.searching && p.painID == args.painID) {
+                // Found a connection
+                p.searching = false;
+                p.connected = true;
+                p.client_id = client_id;
+
+                // Create the text
+                p.updateButton('Disconnect');
+
+                // Tell the user
+                p.addTextLine('Cleverbot has connected!');
+
+                // Update name
+                p.name = 'Cleverbot';
+                p.nameField.val(p.name);
+
+                // Auto send message
+                p.sendAutoMessage(client_id, 500);
+
+                // We have found a match
+                found = true;
+                break;
+            }
+        }
+
+        // Did we find a pain that needed it?
+        if(!found) {
+            // Unwanted connection, just drop it
+            pMap.socket.emit('cleverDisconnect', client_id);
+        }
+    });
+
     // Omegle is finding us a partner
     pMap.socket.on('omegleWaiting', function(client_id) {
         var p = pMap.findByID(client_id);
@@ -104,26 +145,8 @@ function painMap() {
         if(p) {
             p.addTextLine('A stranger was connected!');
 
-            // Grab any auto text messages
-            var txt = p.autoMessage.val();
-
-            // Do we have an auto message?
-            if(txt != '') {
-                // Start typing
-                p.startTyping();
-
-                // Give a short delay before sending the message
-                setTimeout(function() {
-                    // Check if the same client is connected
-                    if(p.client_id == client_id) {
-                        // Send the message
-                        p.sendMessage(txt);
-
-                        // Add it to our log
-                        p.addTextLine('<font color="blue">Auto:</font> '+txt);
-                    }
-                }, 1500);
-            }
+            // Auto send message
+            p.sendAutoMessage(client_id, 1500);
 
             // Generate a new name
             p.name = 'Stranger '+pMap.totalConnections;
@@ -236,10 +259,27 @@ function painMap() {
     });
 }
 
-// Sets up a new pain
-painMap.prototype.setupPain = function() {
+// Sets up a new omegle pain
+painMap.prototype.setupOmeglePain = function() {
     // Create a new pain
-    var p = new pain(this.socket);
+    var p = new pain();
+    p.setup(this.socket);
+
+    // Store the pain
+    this.pains.push(p);
+
+    // Update the broadcasting
+    this.updateBroadcast();
+
+    // Store a reference back to this painMap
+    p.painMap = this;
+}
+
+// Sets up a new cleverbot pain
+painMap.prototype.setupCleverBotPain = function() {
+    // Create a new pain
+    var p = new cleverPain();
+    p.setup(this.socket);
 
     // Store the pain
     this.pains.push(p);
@@ -351,7 +391,9 @@ painMap.prototype.doDisconnect = function(client_id) {
 var totalPains = 0;
 
 // Creates a new pain
-function pain(socket) {
+function pain() {}
+
+pain.prototype.setup = function(socket) {
     // The ID of our connected client
     this.client_id = null;
 
@@ -421,38 +463,7 @@ function pain(socket) {
     var pain = this;
 
     // Hook new/disconnect button
-    pain.button.click(function() {
-        // No longer talking
-        pain.updateTalking(false);
-
-        if(pain.connected) {
-            // We need to disconnect
-
-            // Discconect
-            pain.disconnect();
-
-            // Change text
-            pain.updateButton('New');
-
-            // Add a message
-            pain.addTextLine('You have disconnected!<br><br>');
-        } else if(pain.searching) {
-            // We need to cancel our search
-
-            // Discconect
-            pain.disconnect();
-
-            // Change text
-            pain.updateButton('New');
-
-            // Add a message
-            pain.addTextLine('Cancelled search!<br><br>');
-        } else {
-            // We need to create a connection
-
-            pain.createConnection();
-        }
-    });
+    pain.hookButtons();
 
     // Hook the typing
     pain.input.on('change keyup paste', function() {
@@ -473,7 +484,13 @@ function pain(socket) {
         if (e.which == 13 && ! e.shiftKey) {
             // Grab the txt and reset the field
             var txt = pain.input.val();
-            txt = txt.substr(0, txt.length-1)
+
+            // Remove new lines from the end
+            while(txt.length > 0 && txt.charAt(txt.length-1) == '\n') {
+                txt = txt.substr(0, txt.length-1);
+            }
+
+
             pain.input.val('');
 
             // Do we have a message?
@@ -507,6 +524,46 @@ function pain(socket) {
     });
 }
 
+// Hooks the buttons
+pain.prototype.hookButtons = function() {
+    // Grab a reference to this
+    var pain = this;
+
+    // Hook new/disconnect button
+    pain.button.click(function() {
+        // No longer talking
+        pain.updateTalking(false);
+
+        if(pain.connected) {
+            // We need to disconnect
+
+            // Discconect
+            pain.disconnect();
+
+            // Change text
+            pain.updateButton('New');
+
+            // Add a message
+            pain.addTextLine('You have disconnected!<br><br>');
+        } else if(pain.searching) {
+            // We need to cancel our search
+
+            // Discconect
+            pain.disconnect();
+
+            // Change text
+            pain.updateButton('New');
+
+            // Add a message
+            pain.addTextLine('Cancelled search!<br><br>');
+        } else {
+            // We need to create a connection
+
+            pain.createConnection();
+        }
+    });
+}
+
 // Creates a connectiom for this pain
 pain.prototype.createConnection = function() {
     // We are now searching
@@ -522,6 +579,33 @@ pain.prototype.createConnection = function() {
 
     // Change text
     this.updateButton('Cancel Search');
+}
+
+// Sends out the auto message after the given delay
+pain.prototype.sendAutoMessage = function(client_id, delay) {
+    // Grab a reference to self
+    var p = this;
+
+    // Grab any auto text messages
+    var txt = p.autoMessage.val();
+
+    // Do we have an auto message?
+    if(txt != '') {
+        // Start typing
+        p.startTyping();
+
+        // Give a short delay before sending the message
+        setTimeout(function() {
+            // Check if the same client is connected
+            if(p.client_id == client_id) {
+                // Send the message
+                p.sendMessage(txt);
+
+                // Add it to our log
+                p.addTextLine('<font color="blue">Auto:</font> '+txt);
+            }
+        }, delay);
+    }
 }
 
 // Generates a new randid
@@ -559,7 +643,7 @@ pain.prototype.startTyping = function() {
 // Stops typing
 pain.prototype.stopTyping = function() {
     if(this.connected && this.isTyping) {
-        socket.emit('omegleStopTyping', this.client_id);
+        this.socket.emit('omegleStopTyping', this.client_id);
     }
 
     this.isTyping = false;
@@ -662,13 +746,72 @@ pain.prototype.disconnect = function() {
     this.client_id = null;
 }
 
+/*
+    Cleverbot pain
+*/
+
+function cleverPain() {}
+cleverPain.prototype = new pain();
+
+// Creates a connectiom for this pain
+cleverPain.prototype.createConnection = function() {
+    // We are now searching
+    this.searching = true;
+    this.socket.emit('newClever', {
+        painID: this.painID
+    });
+
+    // Add a message
+    this.addTextLine('Creating a connection...');
+
+    // Change text
+    this.updateButton('Cancel Search');
+}
+
+// Sends a message to the given controller
+cleverPain.prototype.sendMessage = function(msg) {
+    // Ensure we are connected
+    if(this.connected) {
+        // Send the message
+        this.socket.emit('cleverSend', this.client_id, msg);
+
+        // Show that they're talking
+        this.updateTalking(true);
+
+        // Tell others
+        this.broadcastTyping();
+    }
+
+    // This controller is no longer typing
+    this.isTyping = false;
+}
+
+// Called when we want to disconnect from a cleverbot
+pain.prototype.disconnect = function() {
+    // Check if we are already connected
+    if(this.connected) {
+        // Disconnect
+        this.socket.emit('cleverDisconnect', this.client_id);
+    }
+
+    // Reset vars
+    this.connected = false;
+    this.searching = false;
+    this.client_id = null;
+}
+
 $(document).ready(function(){
     // Create the pain manager
     var pains = new painMap();
 
-    // Hook the new window button
-    $('#newWindow').click(function() {
+    // Hook the new window buttons
+    $('#newOmegleWindow').click(function() {
         // Setup a new pain
-        pains.setupPain();
+        pains.setupOmeglePain();
+    });
+
+    $('#newCleverBot').click(function() {
+        // Setup a new pain
+        pains.setupCleverBotPain();
     });
 });
