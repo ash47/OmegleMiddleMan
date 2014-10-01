@@ -7,7 +7,7 @@ app.use(express.static(__dirname + '/static'));
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-var Cleverbot = require('cleverbot-node');
+var Cleverbot = require('./cleverbot.js');
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname+'/static/index.htm');
@@ -225,8 +225,11 @@ io.on('connection', function(socket) {
         if(cleverClients[client_id]) {
             // Send the message
             cleverClients[client_id].write(msg, function(resp) {
-                // Forward message to our client
-                socket.emit('omegleGotMessage', client_id, resp['message']);
+                // Add a small delay
+                setTimeout(function() {
+                    // Forward message to our client
+                    socket.emit('omegleGotMessage', client_id, resp['message']);
+                }, 1500+Math.random()*2000);
             });
         }
     });
