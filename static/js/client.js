@@ -4,7 +4,7 @@
 
 // Default message to auto send
 //var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
-var defaultAutoMessage = 'Hi!';
+var defaultAutoMessage = 'hi';
 
 // Default topics
 var defaultTopics = [
@@ -69,6 +69,7 @@ function painMap() {
                 p.searching = false;
                 p.connected = true;
                 p.client_id = client_id;
+                p.confirmDisconnect = false;
 
                 // Create the text
                 p.updateButton('Disconnect');
@@ -500,6 +501,10 @@ pain.prototype.setup = function(socket) {
 
                 // Add it to our log
                 pain.addTextLine('<font color="blue">You:</font> '+txt);
+
+                // Confirm the D/C
+                pain.updateButton('Disconnect');
+                pain.confirmDisconnect = false;
             }
         }
     });
@@ -519,6 +524,10 @@ pain.prototype.setup = function(socket) {
 
                 // Add it to our log
                 pain.addTextLine('<font color="blue">You:</font> '+txt);
+
+                // Confirm the D/C
+                pain.updateButton('Disconnect');
+                pain.confirmDisconnect = false;
             }
         }
     });
@@ -537,14 +546,21 @@ pain.prototype.hookButtons = function() {
         if(pain.connected) {
             // We need to disconnect
 
-            // Discconect
-            pain.disconnect();
+            // Confirm the D/C
+            if(pain.confirmDisconnect) {
+                // Discconect
+                pain.disconnect();
 
-            // Change text
-            pain.updateButton('New');
+                // Change text
+                pain.updateButton('New');
 
-            // Add a message
-            pain.addTextLine('You have disconnected!<br><br>');
+                // Add a message
+                pain.addTextLine('You have disconnected!<br><br>');
+            } else {
+                // Confirm the D/C
+                pain.updateButton('Confirm');
+                pain.confirmDisconnect = true;
+            }
         } else if(pain.searching) {
             // We need to cancel our search
 
@@ -674,6 +690,9 @@ pain.prototype.sendMessage = function(msg) {
 
     // This controller is no longer typing
     this.isTyping = false;
+
+    // No need to confirm anymore
+    this.confirmDisconnect = false;
 }
 
 // Broadcasts a message to everyone this controller is set to broadcast to
@@ -814,4 +833,15 @@ $(document).ready(function(){
         // Setup a new pain
         pains.setupCleverBotPain();
     });
+
+    // Stop accidental navigation away
+    window.onbeforeunload = function() {
+        var message = "Are you sure?";
+
+        if (confirm(message)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 });
