@@ -77,7 +77,7 @@ Cleverbot.prototype = {
         console.log('CLEVER ERROR' + error.message);
 
         // Resend the message
-        celver.write(message, callback);
+        clever.write(message, callback);
     });
 
     req.write(Cleverbot.encodeParams(body));
