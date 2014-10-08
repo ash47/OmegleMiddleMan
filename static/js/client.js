@@ -9,7 +9,6 @@ var defaultAutoMessage = 'hi';
 // Default topics
 var defaultTopics = [
     'doctor who',
-    'harry potter',
     'south park',
     'family guy',
     'american dad',
@@ -19,13 +18,13 @@ var defaultTopics = [
     'noMultiRP',
     'firsttime1',
     'gingerfirsttime',
-    'breaking bad',
     'supernatural',
     'soul eater',
     'jackandjess',
     'Supernatural',
     'zoemonster',
-    'KiraHatesCats'
+    'KiraHatesCats',
+    'cheshiregrin'
 ].join();
 
 function painMap() {
@@ -755,9 +754,9 @@ pain.prototype.addTextLine = function(msg) {
 // Disconnects if we are connected
 pain.prototype.disconnect = function() {
     // Check if we are already connected
-    if(this.connected) {
+    if(this.connected || this.searching) {
         // Disconnect
-        this.socket.emit('omegleDisconnect', this.client_id);
+        this.socket.emit('omegleDisconnect', this.client_id, this.painID);
     }
 
     // Reset vars

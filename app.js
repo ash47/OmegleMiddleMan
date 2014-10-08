@@ -23,12 +23,16 @@ io.on('connection', function(socket) {
 
     var requiredConnections = [];
     var buildingConnection = false;
+    var currentPain = null;
     function buildConnections() {
         // Any connections required?
         if(!buildingConnection && requiredConnections.length > 0) {
             // Stop multiple from happening
             buildingConnection = true;
             var args = requiredConnections.shift();
+
+            // Store the current pain
+            currentPain = args.painID;
 
             // Create the new omegle instance
             var om = new Omegle(args);
@@ -60,6 +64,9 @@ io.on('connection', function(socket) {
 
                 // Give a brief delay before making a new connection
                 setTimeout(function() {
+                    // No current pain
+                    currentPain = null;
+
                     // No longer building the connection
                     buildingConnection = false;
 
@@ -150,7 +157,7 @@ io.on('connection', function(socket) {
     });
 
     // Client wants us to disconnect a stranger
-    socket.on('omegleDisconnect', function(client_id) {
+    socket.on('omegleDisconnect', function(client_id, painID) {
         // Check if the client even exists
         if(omegleClients[client_id] != null) {
             // Disconnect it
@@ -158,6 +165,26 @@ io.on('connection', function(socket) {
 
             // Delete it
             omegleClients[client_id] = null;
+        }
+
+        // Remove any queued requests for this painID
+        for(var i=0;i<requiredConnections.length;i++) {
+            // Strip the solutions
+            if(requiredConnections[i].painID == painID) {
+                requiredConnections.splice(i--, 1);
+            }
+        }
+
+        // Are we dealing with a pain at the moment?
+        if(currentPain == painID) {
+            // No current pain anymore
+            currentPain = null;
+
+            // No longer building the connection
+            buildingConnection = false;
+
+            // Try to build any remaining connections
+            buildConnections();
         }
     });
 
