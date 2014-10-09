@@ -495,7 +495,7 @@ pain.prototype.setup = function(socket) {
     this.con.append($('<br>'));
 
     this.con.append($('<label>').text('Reroll:'));
-    this.roll = $('<input>').attr('type', 'checkbox');
+    this.roll = $('<input>').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.roll);
 
     this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
