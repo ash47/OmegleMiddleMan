@@ -1,5 +1,7 @@
 body {
     background: #fff7ee;
+    padding:0px;
+    margin:0px;
 }
 
 li {
@@ -7,13 +9,30 @@ li {
 }
 
 #mainCon {
-    width:10000px;
+    position: absolute;
+    left: 0;
+    width:0px;
+    top: 32px;
+    bottom: 0;
+}
+
+#windowManager {
+    position:fixed;
+    left:0px;
+    top:0px;
+    width:100%;
+    margin:0px;
+    margin-bottom:4px;
+    padding:4px;
+    background-color:#fff7cc;
+    border-bottom:1px solid #000;
 }
 
 .omegleContainer {
-    width: 480px;
+    width: 400px;
     float:left;
-    margin-right:40px;
+    margin-right:4px;
+    height:100%;
 }
 
 .omegleContainer input[type="submit"] {
@@ -33,9 +52,13 @@ li {
     border: 4px solid #AAA;
 }
 
+.omegleWindowContainer {
+    height:100%;
+}
+
 .omegleWindow {
-    width:100%;
-    height:80%;
+    width:400px;
+    height:100%;
     border: 1px solid #CCC;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -51,20 +74,26 @@ li {
 }
 
 .omegleAutoMessage {
-    width: 240px;
+    width: 250px;
     height:40px;
 }
 
 .nameField {
-    width: 70px;
-    height: 40px;
+    width: 340px;
+    height: 20px;
+    margin-left:4px;
+    margin-top:2px;
 }
 
 .topicField {
-    width: 480px;
+    width: 400px;
     height: 80px;
 }
 
 .omegleBroadcast {
     display: inline;
+}
+
+pre {
+    margin:0px;
 }

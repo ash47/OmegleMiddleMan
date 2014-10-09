@@ -137,6 +137,15 @@ io.on('connection', function(socket) {
         buildConnections();
     }
 
+    // Client wants to fix broken search
+    socket.on('omegleUnlock', function() {
+        // No longer building the connection
+        buildingConnection = false;
+
+        // Try to build any remaining connections
+        buildConnections();
+    });
+
     // Cleanup a client when they disconnect
     socket.on('disconnect', function(){
         for(var key in omegleClients) {

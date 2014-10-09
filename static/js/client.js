@@ -44,6 +44,12 @@ function painMap() {
     // Create a reference to the pain map
     var pMap = this;
 
+    // Hook unlocking
+    $('#unlockSearching').click(function() {
+        // Ask server to unlock searching
+        pMap.socket.emit('omegleUnlock');
+    });
+
     // Handle disconnect
     pMap.socket.on('disconnect', function () {
         // Add disconnect to all pains
@@ -160,12 +166,12 @@ function painMap() {
             //sendMessage(con, 'You are known as: '+con.name);
 
             // Add the name
-            var msg = p.name+' has connected!';
+            /*var msg = p.name+' has connected!';
 
             // Should we broadcast?
             if(p.addName.is(':checked')) {
                 p.broadcastMessage(msg);
-            }
+            }*/
         }
     });
 
@@ -207,11 +213,6 @@ function painMap() {
 
             // Check for commands
             //if(processCommands(con, msg)) return;
-
-            // Check if we should add a prefix
-            if(p.addName.is(':checked')) {
-                msg = p.prefix + msg;
-            }
 
             // Broadcast it
             p.broadcastMessage(msg);
@@ -327,6 +328,41 @@ painMap.prototype.updateBroadcast = function() {
                 tick.prop('checked', values.shift());
             }
         }
+
+
+        // ADD NAMES
+
+
+        // Build a list of previous values
+        var values = [];
+        for(var b = 0; b < p.addNameFields.length; b++) {
+            values.push(p.addNameFields[b].is(':checked'));
+        }
+
+        // Empty the broadcast holder
+        p.addName.empty();
+        p.addNameFields = [];
+
+        // Add a checkbox for all windows
+        for(var key2=0; key2 < this.pains.length; key2++) {
+            var p2 = this.pains[key2];
+
+            // Create and store the checkbox
+            var tick = $('<input type="checkbox">');
+            p.addName.append(tick);
+            p.addNameFields.push(tick);
+
+            // Check if the tick is needed
+            if(p == p2) {
+                // Disable the checkbox
+                tick.prop("disabled", true);
+            }
+
+            // Copy in old value
+            if(values.length > 0) {
+                tick.prop('checked', values.shift());
+            }
+        }
     }
 }
 
@@ -373,10 +409,10 @@ painMap.prototype.doDisconnect = function(client_id) {
     p.socket.emit('omegleDisconnect', client_id);
 
     // Should we broadcast?
-    if(p.addName.is(':checked')) {
+    /*if(p.addName.is(':checked')) {
         // Send the message to everyone
         p.broadcastMessage(p.name+' has disconnected!');
-    }
+    }*/
 
     // Should we reroll?
     if(p.roll.is(':checked')) {
@@ -419,11 +455,27 @@ pain.prototype.setup = function(socket) {
 
     var mainCon = $('#mainCon');
 
-    this.con = $('<div class="omegleContainer">');
-    mainCon.append(this.con);
+    mainCon.css({
+        width: (440*totalPains)+'px'
+    });
+
+    this.container = $('<table class="omegleContainer">');
+    mainCon.append(this.container);
+
+    var tr = $('<tr>');
+    this.container.append(tr);
+
+    var td = $('<td class="omegleWindowContainer">');
+    tr.append(td);
 
     this.field = $('<div class="omegleWindow">');
-    this.con.append(this.field);
+    td.append(this.field);
+
+    tr = $('<tr>');
+    this.container.append(tr);
+
+    this.con = $('<td>');
+    tr.append(this.con);
 
     this.input = $('<textarea class="omegleField">');
     this.con.append(this.input);
@@ -437,8 +489,8 @@ pain.prototype.setup = function(socket) {
     this.autoMessage = $('<textarea class="omegleAutoMessage">').attr('type', 'text').val(defaultAutoMessage);
     this.con.append(this.autoMessage);
 
-    this.nameField = $('<textarea class="nameField">');
-    this.con.append(this.nameField);
+    //this.nameField = $('<textarea class="nameField">');
+    //this.con.append(this.nameField);
 
     this.con.append($('<br>'));
 
@@ -446,19 +498,29 @@ pain.prototype.setup = function(socket) {
     this.roll = $('<input>').attr('type', 'checkbox');
     this.con.append(this.roll);
 
-    this.con.append($('<label>').text('Add Name:'));
-    this.addName = $('<input>').attr('type', 'checkbox');
-    this.con.append(this.addName);
+    this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
+    this.con.append(this.nameField);
 
-    this.con.append($('<label>').text('Broadcast:'));
+    this.con.append($('<br>'));
+
+    this.con.append($('<label>').text('B:'));
     this.broadcast = $('<div class="omegleBroadcast">');
     this.con.append(this.broadcast);
+
+    this.con.append($('<br>'));
+
+    this.con.append($('<label>').text('A:'));
+    this.addName = $('<div class="omegleBroadcast">');
+    this.con.append(this.addName);
+
+    this.con.append($('<br>'));
 
     this.topicField = $('<textarea class="topicField">');
     this.con.append(this.topicField);
     this.topicField.val(defaultTopics);
 
     this.broadcastFields = [];
+    this.addNameFields = [];
 
     // Grab a reference to the pain
     var pain = this;
@@ -481,18 +543,18 @@ pain.prototype.setup = function(socket) {
     });
 
     // Hook press enter to send
-    pain.input.on('keyup', function(e) {
+    pain.input.on('keydown', function(e) {
         if (e.which == 13 && ! e.shiftKey) {
             // Grab the txt and reset the field
             var txt = pain.input.val();
+
+            // Reset the field
+            pain.input.val('');
 
             // Remove new lines from the end
             while(txt.length > 0 && txt.charAt(txt.length-1) == '\n') {
                 txt = txt.substr(0, txt.length-1);
             }
-
-
-            pain.input.val('');
 
             // Do we have a message?
             if(txt != '') {
@@ -506,6 +568,22 @@ pain.prototype.setup = function(socket) {
                 pain.updateButton('Disconnect');
                 pain.confirmDisconnect = false;
             }
+        }
+    });
+
+    // Remove annoying new lines
+    pain.input.on('keyup', function(e) {
+        if (e.which == 13 && ! e.shiftKey) {
+            // Grab the txt
+            var txt = pain.input.val();
+
+            // Remove new lines from the end
+            while(txt.length > 0 && txt.charAt(txt.length-1) == '\n') {
+                txt = txt.substr(0, txt.length-1);
+            }
+
+            // Reset the field
+            pain.input.val(txt);
         }
     });
 
@@ -706,14 +784,27 @@ pain.prototype.broadcastMessage = function(msg) {
         if(p && p != this && p.connected) {
             // Attempt to grab the tick that coorosponds with it
             var tick = this.broadcastFields[i];
-            if(tick) {
+            var tick2 = this.addNameFields[i];
+            if(tick && tick2) {
                 // Check if it's ticked
                 if(tick.is(':checked')) {
-                    // Send the message
-                    p.sendMessage(msg);
+                    // Add name?
+                    if(tick2.is(':checked')) {
+                        // Modify the message
+                        msg = this.getPrefix() + msg;
 
-                    // Add it to our log
-                    p.addTextLine('<font color="blue">Broadcasted:</font> '+msg);
+                        // Send the message
+                        p.sendMessage(msg);
+
+                        // Add it to our log
+                        p.addTextLine('<font color="blue">Broadcasted:</font> '+msg);
+                    } else {
+                        // Send the message
+                        p.sendMessage(msg);
+
+                        // Add it to our log
+                        p.addTextLine('<font color="blue">Broadcasted:</font> '+msg);
+                    }
                 }
             }
         }
@@ -742,10 +833,9 @@ pain.prototype.broadcastTyping = function() {
     }
 }
 
-
 // Adds a line of text
 pain.prototype.addTextLine = function(msg) {
-    this.field.append($('<li>').html(msg));
+    this.field.append($('<pre>').html(msg));
 
     // Scroll to the bottom:
     this.field.scrollTop(this.field.prop("scrollHeight"));
@@ -763,6 +853,11 @@ pain.prototype.disconnect = function() {
     this.connected = false;
     this.searching = false;
     this.client_id = null;
+}
+
+// Returns the prefix for this pain
+pain.prototype.getPrefix = function() {
+    return this.nameField.val()+': ';
 }
 
 /*
