@@ -114,8 +114,7 @@ function painMap() {
                 p.addTextLine('Cleverbot has connected!');
 
                 // Update name
-                p.name = 'Cleverbot';
-                p.nameField.val(p.name);
+                p.nameField.val('Cleverbot');
 
                 // Auto send message
                 p.sendAutoMessage(client_id, 500);
@@ -155,12 +154,8 @@ function painMap() {
             // Auto send message
             p.sendAutoMessage(client_id, 1500);
 
-            // Generate a new name
-            p.name = 'Stranger '+pMap.totalConnections;
-            p.prefix = p.name+': ';
-
             // Store their name
-            p.nameField.val(p.name);
+            p.nameField.val('Stranger '+pMap.totalConnections);
 
             // Tell them their name
             //sendMessage(con, 'You are known as: '+con.name);
