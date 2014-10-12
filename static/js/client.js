@@ -146,6 +146,9 @@ function painMap() {
                 p.connected = true;
                 p.client_id = client_id;
 
+                // Store the start time
+                p.startTime = new Date().getTime();
+
                 // Create the text
                 p.updateButton('Disconnect');
 
@@ -280,6 +283,9 @@ function painMap() {
         var p = pMap.findByID(client_id);
 
         if(p) {
+            // Print time connected
+            p.printTimeConnected();
+
             p.addTextLine('You have disconnected!');
 
             // Unhook
