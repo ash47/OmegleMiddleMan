@@ -256,6 +256,31 @@ function painMap() {
         }
     });
 
+    // We got a cleverbot message
+    pMap.socket.on('cleverGotMessage', function(client_id, msg) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            // Add a delay if we need to
+            var delay = 0;
+            if(p.moderated.is(':checked')) {
+                delay = 1500+Math.random()*2000;
+            }
+
+            // Add a small delay
+            setTimeout(function() {
+                // They are no longer typing
+                p.updateTalking(false);
+
+                // Add the message
+                p.addTextLine('<font color="red">Cleverbot:</font> '+msg);
+
+                // Broadcast it
+                p.broadcastMessage(msg);
+            }, delay);
+        }
+    });
+
     // Stranger started typing
     pMap.socket.on('omegleTyping', function(client_id) {
         var p = pMap.findByID(client_id);
@@ -541,9 +566,8 @@ pain.prototype.setup = function(socket) {
     this.roll = $('<input>').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.roll);
 
-    this.con.append($('<label>').text('Moderated:'));
-    this.moderated = $('<input>').attr('type', 'checkbox').prop('checked', true);
-    this.con.append(this.moderated);
+    // Add the moderated button
+    this.addModeratedButton();
 
     this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
     this.con.append(this.nameField);
@@ -955,6 +979,12 @@ pain.prototype.printTimeConnected = function() {
     }
 }
 
+pain.prototype.addModeratedButton = function() {
+    this.con.append($('<label>').text('Moderated:'));
+    this.moderated = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.moderated);
+}
+
 /*
     Cleverbot pain
 */
@@ -1016,6 +1046,13 @@ cleverPain.prototype.disconnect = function() {
 
     // Add a message
     this.addTextLine('You have disconnected!<br><br>');
+}
+
+// Add the modereted (actually a delayed) button
+cleverPain.prototype.addModeratedButton = function() {
+    this.con.append($('<label>').text('Delayed:'));
+    this.moderated = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.moderated);
 }
 
 $(document).ready(function(){

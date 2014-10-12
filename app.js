@@ -279,11 +279,10 @@ io.on('connection', function(socket) {
         if(cleverClients[client_id]) {
             // Send the message
             cleverClients[client_id].write(msg, function(resp) {
-                // Add a small delay
-                setTimeout(function() {
-                    // Forward message to our client
-                    socket.emit('omegleGotMessage', client_id, resp['message']);
-                }, 1500+Math.random()*2000);
+                // Forward message to our client
+                socket.emit('cleverGotMessage', client_id, resp['message']);
+
+                console.log(resp);
             });
         }
     });

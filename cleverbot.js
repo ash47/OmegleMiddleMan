@@ -1,19 +1,18 @@
 var crypto = require('crypto')
   , http = require('http')
   , Cleverbot = function(){
-      this.params = Cleverbot.default_params;
+      this.params = {
+        'stimulus'         : '' , 'start'      : 'y'    , 'sessionid' : '',
+        'vText8'           : '' , 'vText7'     : ''     , 'vText6' : '',
+        'vText5'           : '' , 'vText4'     : ''     , 'vText3' : '',
+        'vText2'           : '' , 'icognoid'   : 'wsf'  , 'icognocheck' : '',
+        'fno'              : '0', 'prevref'    : ''     , 'emotionaloutput' : '',
+        'emotionalhistory' : '' , 'asbotname'  : ''     , 'ttsvoice' : '',
+        'typing'           : '' , 'lineref'    : ''     , 'sub' : 'Say',
+        'islearning'       : '1', 'cleanslate' : 'false',
+      };
     };
 
-Cleverbot.default_params = {
-  'stimulus'         : '' , 'start'      : 'y'    , 'sessionid' : '',
-  'vText8'           : '' , 'vText7'     : ''     , 'vText6' : '',
-  'vText5'           : '' , 'vText4'     : ''     , 'vText3' : '',
-  'vText2'           : '' , 'icognoid'   : 'wsf'  , 'icognocheck' : '',
-  'fno'              : '0', 'prevref'    : ''     , 'emotionaloutput' : '',
-  'emotionalhistory' : '' , 'asbotname'  : ''     , 'ttsvoice' : '',
-  'typing'           : '' , 'lineref'    : ''     , 'sub' : 'Say',
-  'islearning'       : '1', 'cleanslate' : 'false',
-};
 Cleverbot.parserKeys = [
   'message', 'sessionid', 'logurl', 'vText8',
   'vText7', 'vText6', 'vText5', 'vText4',
