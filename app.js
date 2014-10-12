@@ -281,8 +281,6 @@ io.on('connection', function(socket) {
             cleverClients[client_id].write(msg, function(resp) {
                 // Forward message to our client
                 socket.emit('cleverGotMessage', client_id, resp['message']);
-
-                console.log(resp);
             });
         }
     });

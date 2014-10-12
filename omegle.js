@@ -241,7 +241,6 @@ Omegle.prototype.eventReceived = function(data) {
     if (data != null) {
         for (_i = 0, _len = data.length; _i < _len; _i++) {
             event = data[_i];
-            console.log(event);
             this.emit.apply(this, event);
         }
     }
