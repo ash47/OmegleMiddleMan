@@ -9,6 +9,22 @@ var util = require('util');
 
 var version = '1.0';
 
+// Gets a time stamp
+function getTimeStamp() {
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    return hour + ":" + min + ":" + sec;
+}
+
 function Omegle(args) {
     // Ensure we have an args array
     if(args == null) args = {};
@@ -19,8 +35,11 @@ function Omegle(args) {
     this.language = args.language || 'en';
     this.mobile = args.mobile || false;
 
+    // Store group
+    this.group = args.group;
+
     // Check if we should use topics
-    if(args.topics != null) {
+    if(args.topics != null && this.group != 'unmon') {
         this.topics = args.topics;
         this.use_likes = 1;
     }
@@ -99,7 +118,7 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
     // Handle disconnect error
     req.on('error', function(error) {
         // Log the error
-        console.log('ERROR' + error.message);
+        console.log('ERROR (' + getTimeStamp() + '): ' + error.message);
 
         // Resend the message
         thisOmegle.requestFull(method, path, data, keepAlive, callback);
@@ -123,7 +142,8 @@ Omegle.prototype.start = function(callback) {
         lang: this.language,
         randid: this.randid,
         use_likes: this.use_likes,
-        topics: JSON.stringify(this.topics)
+        topics: JSON.stringify(this.topics),
+        group: this.group
     }), function(res) {
         // Ensure the request worked
         if (res.statusCode !== 200) {
@@ -221,6 +241,7 @@ Omegle.prototype.eventReceived = function(data) {
     if (data != null) {
         for (_i = 0, _len = data.length; _i < _len; _i++) {
             event = data[_i];
+            console.log(event);
             this.emit.apply(this, event);
         }
     }

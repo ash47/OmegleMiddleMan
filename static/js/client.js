@@ -14,16 +14,9 @@ var defaultTopics = [
     'american dad',
     'the simpsons',
     'rick and morty',
-    'multiRP',
     'noMultiRP',
-    'firsttime1',
-    'gingerfirsttime',
     'supernatural',
     'soul eater',
-    'jackandjess',
-    'Supernatural',
-    'zoemonster',
-    'KiraHatesCats',
     'cheshiregrin'
 ].join();
 
@@ -77,6 +70,9 @@ function painMap() {
                 p.client_id = client_id;
                 p.confirmDisconnect = false;
 
+                // Store the start time
+                p.startTime = new Date().getTime();
+
                 // Create the text
                 p.updateButton('Disconnect');
 
@@ -90,6 +86,49 @@ function painMap() {
         if(!found) {
             // Unwanted connection, just drop it
             pMap.socket.emit('omegleDisconnect', client_id);
+        }
+    });
+
+    // Server reported that we are banned
+    pMap.socket.on('omegleBanned', function(args) {
+        // Search for a new pain
+        var found = false;
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            if(p.painID == args.painID) {
+                // Found the right pain
+
+                // Disconnect
+                p.disconnect()
+
+                // Log the problem
+                p.addTextLine('<b><font color="red">You are banned.</font></b> Switching to unmoderated...');
+
+                // Toggle unmoderated off
+                p.moderated.prop('checked', false);
+
+                // Begin searching again
+                p.createConnection();
+            }
+        }
+    });
+
+    // There was an error
+    pMap.socket.on('omegleError', function(args, err) {
+        // Search for a new pain
+        var found = false;
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            if(p.painID == args.painID) {
+                // Found the right pain
+
+                // Log the problem
+                p.addTextLine('Error: '+err);
+            }
         }
     });
 
@@ -394,6 +433,9 @@ painMap.prototype.doDisconnect = function(client_id) {
     p.connected = false;
     p.client_id = null;
 
+    // Print the connected time
+    p.printTimeConnected();
+
     // Add message to chat
     p.addTextLine('The stranger has disconnected!<br><br>');
 
@@ -493,6 +535,10 @@ pain.prototype.setup = function(socket) {
     this.roll = $('<input>').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.roll);
 
+    this.con.append($('<label>').text('Moderated:'));
+    this.moderated = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.moderated);
+
     this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
     this.con.append(this.nameField);
 
@@ -522,20 +568,6 @@ pain.prototype.setup = function(socket) {
 
     // Hook new/disconnect button
     pain.hookButtons();
-
-    // Hook the typing
-    pain.input.on('change keyup paste', function() {
-        // Grab the text
-        var txt = $(this).val();
-
-        if(txt == '') {
-            // Empty text, no longer typing
-            pain.stopTyping();
-        } else {
-            // A string
-            pain.startTyping();
-        }
-    });
 
     // Hook press enter to send
     pain.input.on('keydown', function(e) {
@@ -582,6 +614,23 @@ pain.prototype.setup = function(socket) {
         }
     });
 
+    // Hook the typing
+    pain.input.on('change keyup paste', function(e) {
+        // Ignore enter
+        if (e.which == 13) return;
+
+        // Grab the text
+        var txt = $(this).val();
+
+        if(txt == '') {
+            // Empty text, no longer typing
+            pain.stopTyping();
+        } else {
+            // A string
+            pain.startTyping();
+        }
+    });
+
     // Hook send button
     pain.send.click(function() {
         // Ensure we are connected
@@ -623,12 +672,6 @@ pain.prototype.hookButtons = function() {
             if(pain.confirmDisconnect) {
                 // Discconect
                 pain.disconnect();
-
-                // Change text
-                pain.updateButton('New');
-
-                // Add a message
-                pain.addTextLine('You have disconnected!<br><br>');
             } else {
                 // Confirm the D/C
                 pain.updateButton('Confirm');
@@ -639,12 +682,6 @@ pain.prototype.hookButtons = function() {
 
             // Discconect
             pain.disconnect();
-
-            // Change text
-            pain.updateButton('New');
-
-            // Add a message
-            pain.addTextLine('Cancelled search!<br><br>');
         } else {
             // We need to create a connection
 
@@ -657,10 +694,18 @@ pain.prototype.hookButtons = function() {
 pain.prototype.createConnection = function() {
     // We are now searching
     this.searching = true;
+
+    // Unmoderated option
+    var group;
+    if(!this.moderated.is(':checked')) {
+        group = 'unmon';
+    }
+
     this.socket.emit('newOmegle', {
         painID: this.painID,
         topics: this.getTopics(),
-        randid: this.randid
+        randid: this.randid,
+        group: group
     });
 
     // Add a message
@@ -708,8 +753,14 @@ pain.prototype.newRandid = function() {
 
 // Returns this pain's topics (as an array)
 pain.prototype.getTopics = function() {
+    // Grab the topics field's value
+    var val = this.topicField.val();
+
+    // If there is nothing in it, don't use topics
+    if(val.length == 0) return;
+
     // Return the topics
-    return this.topicField.val().split(',');
+    return val.split(',');
 }
 
 // Updates a button
@@ -763,6 +814,9 @@ pain.prototype.sendMessage = function(msg) {
 
     // This controller is no longer typing
     this.isTyping = false;
+
+    // Fire the stop talking event
+    this.stopTyping();
 
     // No need to confirm anymore
     this.confirmDisconnect = false;
@@ -848,11 +902,51 @@ pain.prototype.disconnect = function() {
     this.connected = false;
     this.searching = false;
     this.client_id = null;
+
+    // Change text
+    this.updateButton('New');
+
+    // Print time connected
+    this.printTimeConnected();
+
+    // Add a message
+    this.addTextLine('You have disconnected!<br><br>');
 }
 
 // Returns the prefix for this pain
 pain.prototype.getPrefix = function() {
     return this.nameField.val()+': ';
+}
+
+// Prints the time we have been connected
+pain.prototype.printTimeConnected = function() {
+    if(this.startTime != null) {
+        // Workout how long we have been connected
+        var time = (new Date().getTime()) - this.startTime;
+
+        // Convert to something useful
+        var min = (time/1000/60) << 0;
+        var sec = Math.floor((time/1000) % 60);
+
+        // Build nice minute handler
+        var minCon = '';
+        if(min > 0) {
+            if(min > 1) {
+                minCon = min+' minutes and ';
+            } else {
+                minCon = '1 minute and ';
+            }
+        }
+
+        // Build nice second handler
+        var secCon = sec+' seconds.';
+        if(sec == 1) {
+            secCon = '1 second.'
+        }
+
+        // Log it
+        this.addTextLine('Connected for '+minCon+secCon);
+    }
 }
 
 /*
@@ -896,7 +990,7 @@ cleverPain.prototype.sendMessage = function(msg) {
 }
 
 // Called when we want to disconnect from a cleverbot
-pain.prototype.disconnect = function() {
+cleverPain.prototype.disconnect = function() {
     // Check if we are already connected
     if(this.connected) {
         // Disconnect
@@ -907,6 +1001,15 @@ pain.prototype.disconnect = function() {
     this.connected = false;
     this.searching = false;
     this.client_id = null;
+
+    // Change text
+    this.updateButton('New');
+
+    // Print time connected
+    this.printTimeConnected();
+
+    // Add a message
+    this.addTextLine('You have disconnected!<br><br>');
 }
 
 $(document).ready(function(){

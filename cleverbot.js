@@ -74,7 +74,7 @@ Cleverbot.prototype = {
 
     req.on('error', function(error) {
         // Log the error
-        console.log('CLEVER ERROR' + error.message);
+        console.log('CLEVER ERROR: ' + error.message);
 
         // Resend the message
         clever.write(message, callback);

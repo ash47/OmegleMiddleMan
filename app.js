@@ -51,6 +51,24 @@ io.on('connection', function(socket) {
                 realClientID = client_id;
             });
 
+            // Omegle has banned us
+            om.on('antinudeBanned', function() {
+                // No longer building a connection
+                buildingConnection = false;
+
+                // Move on
+                buildConnections();
+
+                // Send this ID to the user
+                socket.emit('omegleBanned', args);
+            });
+
+            // There was an error
+            om.on('error', function(err) {
+                // Send this ID to the user
+                socket.emit('omegleError', args, err);
+            });
+
             // Omegle is finding a partner
             om.on('waiting', function() {
                 // Tell the client
