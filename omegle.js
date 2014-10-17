@@ -79,7 +79,7 @@ Omegle.prototype.requestKA = function(path, data, callback) {
     return this.requestFull('POST', path, data, true, callback);
 };
 
-Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback) {
+Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback,) {
     // Grab a reference to this
     var thisOmegle = this;
 
@@ -156,23 +156,62 @@ Omegle.prototype.start = function(callback) {
         getAllData(res, function(data) {
             // Make sure we got some data
             if(data != null) {
-                // Parse the info
-                var info = JSON.parse(data);
+                try {
+                    // Parse the info
+                    var info = JSON.parse(data);
 
-                // Store the clientID
-                _this.client_id = info.clientID;
+                    console.log(info);
 
-                // Run the callback
-                callback();
+                    // Store the clientID
+                    _this.client_id = info.clientID;
 
-                // Emit the newid event
-                _this.emit('newid', _this.client_id);
+                    // Run the callback
+                    if (typeof callback === "function") {
+                        callback(res.statusCode);
+                    }
 
-                // Run the event loop
-                _this.eventsLoop();
+                    // Emit the newid event
+                    _this.emit('newid', _this.client_id);
 
-                // Push Events
-                _this.eventReceived(JSON.stringify(info.events));
+                    // Push Events
+                    _this.eventReceived(JSON.stringify(info.events));
+                } catch(e) {
+                    // Failure :(
+                    console.log('Failed to parse JSON: '+e);
+                } finally {
+                    // Run the event loop
+                    _this.eventsLoop();
+                }
+            } else {
+                // Run the fail callback
+                callback(-1);
+            }
+        });
+    });
+};
+
+Omegle.prototype.recaptcha = function(challenge, answer, callback) {
+    var _this = this;
+
+    console.log('Client ID: '+_this.client_id);
+
+    return this.requestGet('/recaptcha?' + qs.stringify({
+        id: _this.client_id,
+        challenge: challenge,
+        response: answer
+    }), function(res) {
+        // Process the event
+        getAllData(res, function(data) {
+            // Make sure we got some data
+            if(data != null) {
+                console.log(data);
+
+                if(data == 'fail') {
+                    // Start again
+                    _this.start();
+                } else {
+                    console.log(data);
+                }
             } else {
                 // Run the fail callback
                 callback(-1);
@@ -262,6 +301,9 @@ function getAllData(res, callback) {
         callback(buffer.join(''));
     });
 };
+
+// Export it
+Omegle.prototype.getAllData = getAllData;
 
 function callbackErr(callback, res) {
     return typeof callback === "function" ? callback((res.statusCode !== 200 ? res.statusCode : void 0)) : void 0;

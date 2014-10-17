@@ -4,8 +4,10 @@ var app = express();
 
 app.use(express.static(__dirname + '/static'));
 
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var http = require('http');
+var https = require('https');
+var httpServer = http.Server(app);
+var io = require('socket.io')(httpServer);
 
 var Cleverbot = require('./cleverbot.js');
 
@@ -20,6 +22,9 @@ io.on('connection', function(socket) {
 
     // List of clever bot clients
     var cleverClients = {};
+
+    // Stores challenge omegle clients
+    var challenges = {};
 
     var requiredConnections = [];
     var buildingConnection = false;
@@ -97,11 +102,48 @@ io.on('connection', function(socket) {
             om.on('commonLikes', function(commonLikes) {
                 // Tell the client
                 socket.emit('omegleCommonLikes', realClientID, commonLikes);
-            })
+            });
+
+            om.on('recaptchaRejected', function() {
+                console.log('rejected!');
+            });
 
             // Recapture
             om.on('recaptchaRequired', function(code) {
-                console.log("Looks like we have to solve this sadly: " + code);
+                // URL with challenge data
+                var toFetch = 'https://www.google.com/recaptcha/api/challenge?k='+code+'&cahcestop='+Math.random();
+
+                https.get(toFetch, function(res) {
+                    // Ensure the request worked
+                    if (res.statusCode !== 200) {
+                        console.log('Captcha Failure');
+                        return;
+                    }
+
+                    // Process the event
+                    om.getAllData(res, function(data) {
+                        // Make sure we got some data
+                        if(data != null) {
+                            // Copy important data
+                            var a = data.indexOf('\'')+1;
+                            var b = data.indexOf('\'', a)-1;
+
+                            // Grab the challenge
+                            var challenge = data.substring(a, b+1);
+
+                            // Store it
+                            challenges[challenge] = om;
+
+                            // Send to client to solve
+                            socket.emit('omegleChallenge', args, code, challenge);
+                        } else {
+                            // Failure
+                            console.log('Capcha, no data passed!');
+                        }
+                    });
+                }).on('error', function(e) {
+                  console.log("Got error: " + e.message);
+                });
             });
 
             // Stranger has disconnected
@@ -228,6 +270,17 @@ io.on('connection', function(socket) {
         }
     });
 
+    // Client is trying to answer a captcha
+    socket.on('omegleChallenge', function(code, challenge, answer) {
+        var om = challenges[challenge];
+
+        if(om != null) {
+            om.recaptcha(challenge, answer, function(err) {
+                console.log('response: '+ err);
+            });
+        }
+    });
+
     // Client started typing
     socket.on('omegleTyping', function(client_id) {
         // Check if the client even exists
@@ -286,6 +339,6 @@ io.on('connection', function(socket) {
     });
 });
 
-http.listen(3000, function() {
+httpServer.listen(3000, function() {
     console.log('listening on *:3000');
 });

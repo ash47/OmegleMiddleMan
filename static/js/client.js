@@ -17,7 +17,8 @@ var defaultTopics = [
     'noMultiRP',
     'supernatural',
     'soul eater',
-    'cheshiregrin'
+    'cheshiregrin',
+    'AprilCOH'
 ].join();
 
 function painMap() {
@@ -86,6 +87,25 @@ function painMap() {
         if(!found) {
             // Unwanted connection, just drop it
             pMap.socket.emit('omegleDisconnect', client_id);
+        }
+    });
+
+    // Recapcha
+    pMap.socket.on('omegleChallenge', function(args, code, challenge) {
+        // Search for the one that needs it to be solved
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            if(p.painID == args.painID) {
+                // Add the image
+                p.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+challenge+'">');
+
+                // We are doing a captcha
+                p.captcha = true;
+                p.code = code;
+                p.challenge = challenge;
+            }
         }
     });
 
@@ -837,7 +857,13 @@ pain.prototype.updateTalking = function(talking) {
 // Sends a message to the given controller
 pain.prototype.sendMessage = function(msg) {
     // Ensure we are connected
-    if(this.connected) {
+    if(this.captcha) {
+        // Send captcha
+        this.socket.emit('omegleChallenge', this.code, this.challenge, msg);
+
+        // No longer asking for a captcha
+        this.captcha = false;
+    } else if(this.connected) {
         // Send the message
         this.socket.emit('omegleSend', this.client_id, msg);
     }
@@ -860,7 +886,7 @@ pain.prototype.broadcastMessage = function(msg) {
     for(var i=0; i<pains.length; i++) {
         // Attempt to grab a pain
         var p = pains[i];
-        if(p && p != this && p.connected) {
+        if(p && p != this && p.connected && !p.captcha) {
             // Attempt to grab the tick that coorosponds with it
             var tick = this.broadcastFields[i];
             var tick2 = this.addNameFields[i];
@@ -869,14 +895,11 @@ pain.prototype.broadcastMessage = function(msg) {
                 if(tick.is(':checked')) {
                     // Add name?
                     if(tick2.is(':checked')) {
-                        // Modify the message
-                        msg = this.getPrefix() + msg;
-
                         // Send the message
-                        p.sendMessage(msg);
+                        p.sendMessage(this.getPrefix()+msg);
 
                         // Add it to our log
-                        p.addTextLine('<font color="blue">Broadcasted:</font> '+msg);
+                        p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+msg);
                     } else {
                         // Send the message
                         p.sendMessage(msg);
