@@ -79,7 +79,7 @@ Omegle.prototype.requestKA = function(path, data, callback) {
     return this.requestFull('POST', path, data, true, callback);
 };
 
-Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback,) {
+Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback) {
     // Grab a reference to this
     var thisOmegle = this;
 
