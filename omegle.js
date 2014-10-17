@@ -160,14 +160,12 @@ Omegle.prototype.start = function(callback) {
                     // Parse the info
                     var info = JSON.parse(data);
 
-                    console.log(info);
-
                     // Store the clientID
                     _this.client_id = info.clientID;
 
                     // Run the callback
                     if (typeof callback === "function") {
-                        callback(res.statusCode);
+                        callback();
                     }
 
                     // Emit the newid event
@@ -192,8 +190,6 @@ Omegle.prototype.start = function(callback) {
 
 Omegle.prototype.recaptcha = function(challenge, answer, callback) {
     var _this = this;
-
-    console.log('Client ID: '+_this.client_id);
 
     return this.requestGet('/recaptcha?' + qs.stringify({
         id: _this.client_id,
