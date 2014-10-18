@@ -188,32 +188,16 @@ Omegle.prototype.start = function(callback) {
     });
 };
 
-Omegle.prototype.recaptcha = function(challenge, answer, callback) {
+Omegle.prototype.recaptcha = function(challenge, answer) {
     var _this = this;
 
-    return this.requestGet('/recaptcha?' + qs.stringify({
+    console.log(_this.client_id);
+
+    return this.requestPost('/recaptcha', {
         id: _this.client_id,
         challenge: challenge,
         response: answer
-    }), function(res) {
-        // Process the event
-        getAllData(res, function(data) {
-            // Make sure we got some data
-            if(data != null) {
-                console.log(data);
-
-                if(data == 'fail') {
-                    // Start again
-                    _this.start();
-                } else {
-                    console.log(data);
-                }
-            } else {
-                // Run the fail callback
-                callback(-1);
-            }
-        });
-    });
+    }, function(){});
 };
 
 Omegle.prototype.send = function(msg, callback) {
@@ -276,6 +260,7 @@ Omegle.prototype.eventReceived = function(data) {
     if (data != null) {
         for (_i = 0, _len = data.length; _i < _len; _i++) {
             event = data[_i];
+            console.log(event);
             this.emit.apply(this, event);
         }
     }

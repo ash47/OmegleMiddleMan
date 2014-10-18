@@ -104,12 +104,8 @@ io.on('connection', function(socket) {
                 socket.emit('omegleCommonLikes', realClientID, commonLikes);
             });
 
-            om.on('recaptchaRejected', function() {
-                console.log('rejected!');
-            });
-
-            // Recapture
-            om.on('recaptchaRequired', function(code) {
+            // Handle the capcha
+            function handleCaptcha(code) {
                 // URL with challenge data
                 var toFetch = 'https://www.google.com/recaptcha/api/challenge?k='+code+'&cahcestop='+Math.random();
 
@@ -144,7 +140,11 @@ io.on('connection', function(socket) {
                 }).on('error', function(e) {
                   console.log("Got error: " + e.message);
                 });
-            });
+            }
+
+            // Recaptcha
+            om.on('recaptchaRejected', handleCaptcha);
+            om.on('recaptchaRequired', handleCaptcha);
 
             // Stranger has disconnected
             om.on('strangerDisconnected', function() {
@@ -275,9 +275,7 @@ io.on('connection', function(socket) {
         var om = challenges[challenge];
 
         if(om != null) {
-            om.recaptcha(challenge, answer, function(err) {
-                console.log('response: '+ err);
-            });
+            om.recaptcha(challenge, answer);
         }
     });
 
