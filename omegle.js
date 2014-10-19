@@ -191,8 +191,6 @@ Omegle.prototype.start = function(callback) {
 Omegle.prototype.recaptcha = function(challenge, answer) {
     var _this = this;
 
-    console.log(_this.client_id);
-
     return this.requestPost('/recaptcha', {
         id: _this.client_id,
         challenge: challenge,
