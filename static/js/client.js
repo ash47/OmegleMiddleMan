@@ -49,6 +49,15 @@ function painMap() {
         }
     });
 
+    // Server sent us info about omegle's status
+    pMap.socket.on('omegleStatusInfo', function (statusInfo) {
+        if(statusInfo == null) return;
+
+        if(statusInfo.count) {
+            $('#totalOmeglers').text(numberWithCommas(statusInfo.count)+' online now!');
+        }
+    });
+
     // Server created a new omegle instance for us
     pMap.socket.on('newOmegle', function(client_id, args) {
         // Search for a new pain
@@ -1181,6 +1190,11 @@ cleverPain.prototype.addModeratedButton = function() {
     this.con.append($('<label for="mod'+this.painID+'">').text('Delayed:'));
     this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.moderated);
+}
+
+// Adds commas to numbers
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 $(document).ready(function(){

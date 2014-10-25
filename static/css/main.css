@@ -99,3 +99,8 @@ pre {
     margin:0px;
     white-space: pre-wrap;
 }
+
+#totalOmeglers {
+    float:right;
+    margin-right:10px;
+}

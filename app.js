@@ -104,6 +104,12 @@ io.on('connection', function(socket) {
                 socket.emit('omegleCommonLikes', realClientID, commonLikes);
             });
 
+            // Omegle is sending us status info
+            om.on('statusInfo', function(statusInfo) {
+                // Tell the client
+                socket.emit('omegleStatusInfo', statusInfo);
+            });
+
             // Omegle is telling us our partner's college
             om.on('partnerCollege', function(college) {
                 // Tell the client
