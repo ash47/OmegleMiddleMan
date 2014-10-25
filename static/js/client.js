@@ -54,7 +54,7 @@ function painMap() {
         if(statusInfo == null) return;
 
         if(statusInfo.count) {
-            $('#totalOmeglers').text(numberWithCommas(statusInfo.count)+' online now!');
+            $('#totalOmeglers').text(numberWithCommas(statusInfo.count)+' online');
         }
     });
 
