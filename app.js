@@ -104,6 +104,18 @@ io.on('connection', function(socket) {
                 socket.emit('omegleCommonLikes', realClientID, commonLikes);
             });
 
+            // Omegle is telling us our partner's college
+            om.on('partnerCollege', function(college) {
+                // Tell the client
+                socket.emit('omeglePartnerCollege', realClientID, college);
+            });
+
+            // Omegle sent us a question
+            om.on('question', function(question) {
+                // Tell the client
+                socket.emit('omegleQuestion', realClientID, question);
+            });
+
             // Handle the capcha
             function handleCaptcha(code) {
                 // URL with challenge data

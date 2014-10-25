@@ -6,20 +6,13 @@
 //var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
 var defaultAutoMessage = 'hi';
 
+// Default settings
+var omegleSettings = omegleSettings || {
+    defaultTopics: ''
+};
+
 // Default topics
-var defaultTopics = [
-    'doctor who',
-    'south park',
-    'family guy',
-    'american dad',
-    'the simpsons',
-    'rick and morty',
-    'noMultiRP',
-    'supernatural',
-    'soul eater',
-    'cheshiregrin',
-    'AprilCOH'
-].join();
+var defaultTopics = omegleSettings.defaultTopics;
 
 function painMap() {
     /*
@@ -248,6 +241,26 @@ function painMap() {
 
             // Display the likes
             p.addTextLine('The stranger likes '+commonLikes.toString());
+        }
+    });
+
+    // Omegle is telling us our partner's college
+    pMap.socket.on('omeglePartnerCollege', function(client_id, college) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            // Display the college
+            p.addTextLine('Stranger\'s college: '+college);
+        }
+    });
+
+    // Omegle sent us a question
+    pMap.socket.on('omegleQuestion', function(client_id, question) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            // Display the college
+            p.addTextLine('<b>Question:</b> '+question);
         }
     });
 
@@ -594,6 +607,24 @@ pain.prototype.setup = function(socket) {
 
     this.con.append($('<br>'));
 
+    this.con.append($('<label>').text('Spy:'));
+    this.spy = $('<input>').attr('type', 'checkbox').prop('checked', false);
+    this.con.append(this.spy);
+
+    this.con.append($('<label>').text('Use Likes:'));
+    this.useLikes = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.useLikes);
+
+    this.con.append($('<label>').text('Use College:'));
+    this.college = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.college);
+
+    this.con.append($('<label>').text('Any College:'));
+    this.anyCollge = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.anyCollge);
+
+    this.con.append($('<br>'));
+
     this.con.append($('<label>').text('B:'));
     this.broadcast = $('<div class="omegleBroadcast">');
     this.con.append(this.broadcast);
@@ -751,12 +782,46 @@ pain.prototype.createConnection = function() {
         group = 'unmon';
     }
 
-    this.socket.emit('newOmegle', {
+    // List of parameters
+    var params = {
         painID: this.painID,
         topics: this.getTopics(),
         randid: this.randid,
         group: group
-    });
+    };
+
+    // Spy mode
+    if(this.spy.is(':checked')) {
+        params.wantsspy = 1;
+    }
+
+    // College stuff
+    if(this.college.is(':checked')) {
+        // Ensure they have the correct settings
+        if(omegleSettings.college && omegleSettings.college_auth) {
+            // Copy in params
+            params.college = omegleSettings.college;
+            params.college_auth = omegleSettings.college_auth;
+
+            // Do we use any college
+            if(this.anyCollge.is(':checked')) {
+                params.any_college = 1;
+            }
+        } else {
+            // Tell the user
+            this.addTextLine('You need to add <b>college</b> and <b>college_auth</b> to your omegleSettings in static/js/settings.js');
+        }
+    }
+
+    // Copy in extra stuff
+    if(omegleSettings.bonusParams) {
+        for(var key in omegleSettings.bonusParams) {
+            params[key] = omegleSettings.bonusParams[key];
+        }
+    }
+
+    // Send the request
+    this.socket.emit('newOmegle', params);
 
     // Add a message
     this.addTextLine('Creating a connection...');
@@ -803,6 +868,10 @@ pain.prototype.newRandid = function() {
 
 // Returns this pain's topics (as an array)
 pain.prototype.getTopics = function() {
+    if(!this.useLikes.is(':checked'))  {
+        return
+    }
+
     // Grab the topics field's value
     var val = this.topicField.val();
 

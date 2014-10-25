@@ -37,3 +37,6 @@ Icon
 .Trashes
 
 node_modules/*
+
+# Ignore the settings file
+static/js/settings.js

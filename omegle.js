@@ -38,12 +38,6 @@ function Omegle(args) {
     // Store group
     this.group = args.group;
 
-    // Check if we should use topics
-    if(args.topics != null && this.group != 'unmon') {
-        this.topics = args.topics;
-        this.use_likes = 1;
-    }
-
     // Attempt to copy the random ID in
     if(args.randid) {
         // It exists, copy it
@@ -54,6 +48,28 @@ function Omegle(args) {
         var randData = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
         for(var i=0; i<8; i++) {
             this.randid += randData.charAt(Math.floor(Math.random() * randData.length));
+        }
+    }
+
+    // Spy mode?
+    if(args.wantsspy) {
+        // Set to spy mode
+        this.wantsspy = args.wantsspy;
+    } else {
+        // Store college stuff
+        if(args.college && args.college_auth) {
+            this.college = args.college;
+            this.college_auth = args.college_auth;
+
+            if(args.any_college) {
+                this.any_college = args.any_college;
+            }
+        }
+
+        // Check if we should use topics
+        if(args.topics != null && this.group != 'unmon') {
+            this.topics = args.topics;
+            this.use_likes = 1;
         }
     }
 
@@ -143,7 +159,11 @@ Omegle.prototype.start = function(callback) {
         randid: this.randid,
         use_likes: this.use_likes,
         topics: JSON.stringify(this.topics),
-        group: this.group
+        group: this.group,
+        college: this.college,
+        college_auth: this.college_auth,
+        any_college: this.any_college,
+        wantsspy: this.wantsspy
     }), function(res) {
         // Ensure the request worked
         if (res.statusCode !== 200) {
