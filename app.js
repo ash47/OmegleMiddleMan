@@ -164,10 +164,22 @@ io.on('connection', function(socket) {
                 socket.emit('omegleStrangerDisconnected', realClientID);
             });
 
+            // A spy disconnected
+            om.on('spyDisconnected', function(spy) {
+                // Tell client
+                socket.emit('omegleSpyDisconnected', realClientID, spy);
+            });
+
             // Stranger sent us a message
             om.on('gotMessage', function(msg) {
                 // Tell client
                 socket.emit('omegleGotMessage', realClientID, msg);
+            });
+
+            // Got a spy message
+            om.on('spyMessage', function(spy, msg) {
+                // Tell client
+                socket.emit('omegleSpyMessage', realClientID, spy, msg);
             });
 
             // We have disconnected

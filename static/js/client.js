@@ -270,6 +270,12 @@ function painMap() {
         pMap.doDisconnect(client_id);
     });
 
+    // Spy disconected
+    pMap.socket.on('omegleSpyDisconnected', function(client_id, spy) {
+        // Do it
+        pMap.doDisconnect(client_id, spy);
+    });
+
     // We got a message
     pMap.socket.on('omegleGotMessage', function(client_id, msg) {
         var p = pMap.findByID(client_id);
@@ -280,6 +286,24 @@ function painMap() {
 
             // Add the message
             p.addTextLine('<font color="red">Stranger:</font> '+msg);
+
+            // Check for commands
+            //if(processCommands(con, msg)) return;
+
+            // Broadcast it
+            p.broadcastMessage(msg);
+        }
+    });
+
+    pMap.socket.on('omegleSpyMessage', function(client_id, spy, msg) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            // They are no longer typing
+            p.updateTalking(false);
+
+            // Add the message
+            p.addTextLine('<font color="red">'+spy+':</font> '+msg);
 
             // Check for commands
             //if(processCommands(con, msg)) return;
@@ -488,10 +512,12 @@ painMap.prototype.findByID = function(client_id, remove) {
 }
 
 // Disconnects someone
-painMap.prototype.doDisconnect = function(client_id) {
+painMap.prototype.doDisconnect = function(client_id, name) {
     // Find and remove the pain
     var p = this.findByID(client_id);
     if(!p) return;
+
+    name = name || 'The stranger';
 
     // Unhook
     p.connected = false;
@@ -501,7 +527,7 @@ painMap.prototype.doDisconnect = function(client_id) {
     p.printTimeConnected();
 
     // Add message to chat
-    p.addTextLine('The stranger has disconnected!<br><br>');
+    p.addTextLine(name+' has disconnected!<br><br>');
 
     // Reset border color
     p.updateTalking(false);
@@ -595,8 +621,8 @@ pain.prototype.setup = function(socket) {
 
     this.con.append($('<br>'));
 
-    this.con.append($('<label>').text('Reroll:'));
-    this.roll = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append($('<label for="roll'+this.painID+'">').text('Reroll:'));
+    this.roll = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.roll);
 
     // Add the moderated button
@@ -607,20 +633,24 @@ pain.prototype.setup = function(socket) {
 
     this.con.append($('<br>'));
 
-    this.con.append($('<label>').text('Spy:'));
-    this.spy = $('<input>').attr('type', 'checkbox').prop('checked', false);
+    this.con.append($('<label for="spy'+this.painID+'">').text('Spy:'));
+    this.spy = $('<input id="spy'+this.painID+'">').attr('type', 'checkbox').prop('checked', false);
     this.con.append(this.spy);
 
-    this.con.append($('<label>').text('Use Likes:'));
-    this.useLikes = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append($('<label for="ask'+this.painID+'">').text('Ask:'));
+    this.ask = $('<input id="ask'+this.painID+'">').attr('type', 'checkbox').prop('checked', false);
+    this.con.append(this.ask);
+
+    this.con.append($('<label for="likes'+this.painID+'">').text('Use Likes:'));
+    this.useLikes = $('<input id="likes'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.useLikes);
 
-    this.con.append($('<label>').text('Use College:'));
-    this.college = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append($('<label for="college'+this.painID+'">').text('College:'));
+    this.college = $('<input id="college'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.college);
 
-    this.con.append($('<label>').text('Any College:'));
-    this.anyCollge = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append($('<label for="any'+this.painID+'">').text('Any College:'));
+    this.anyCollge = $('<input id="any'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.anyCollge);
 
     this.con.append($('<br>'));
@@ -792,7 +822,13 @@ pain.prototype.createConnection = function() {
 
     // Spy mode
     if(this.spy.is(':checked')) {
+        // We want spy mode
         params.wantsspy = 1;
+
+        // Are we asking a question
+        if(this.ask.is(':checked')) {
+            params.ask = this.autoMessage.val();
+        }
     }
 
     // College stuff
@@ -1072,8 +1108,8 @@ pain.prototype.printTimeConnected = function() {
 }
 
 pain.prototype.addModeratedButton = function() {
-    this.con.append($('<label>').text('Moderated:'));
-    this.moderated = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append($('<label for="mod'+this.painID+'">').text('Moderated:'));
+    this.moderated = $('<input id="mod'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.moderated);
 }
 
@@ -1142,8 +1178,8 @@ cleverPain.prototype.disconnect = function() {
 
 // Add the modereted (actually a delayed) button
 cleverPain.prototype.addModeratedButton = function() {
-    this.con.append($('<label>').text('Delayed:'));
-    this.moderated = $('<input>').attr('type', 'checkbox').prop('checked', true);
+    this.con.append($('<label for="mod'+this.painID+'">').text('Delayed:'));
+    this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.moderated);
 }
 

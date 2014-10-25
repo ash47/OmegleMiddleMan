@@ -53,8 +53,14 @@ function Omegle(args) {
 
     // Spy mode?
     if(args.wantsspy) {
-        // Set to spy mode
-        this.wantsspy = args.wantsspy;
+        // What kind of spy mode?
+        if(args.ask) {
+            // User is asking a question
+            this.ask = args.ask;
+        } else {
+            // User is answering questions
+            this.wantsspy = args.wantsspy;
+        }
     } else {
         // Store college stuff
         if(args.college && args.college_auth) {
@@ -163,7 +169,8 @@ Omegle.prototype.start = function(callback) {
         college: this.college,
         college_auth: this.college_auth,
         any_college: this.any_college,
-        wantsspy: this.wantsspy
+        wantsspy: this.wantsspy,
+        ask: this.ask
     }), function(res) {
         // Ensure the request worked
         if (res.statusCode !== 200) {
