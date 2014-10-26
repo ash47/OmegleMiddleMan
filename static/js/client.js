@@ -206,7 +206,7 @@ function painMap() {
     });
 
     // Omegle connected us to someone
-    pMap.socket.on('omegleConnected', function(client_id) {
+    pMap.socket.on('omegleConnected', function(client_id, peerID) {
         var p = pMap.findByID(client_id);
 
         // Increase total number of connections
@@ -221,16 +221,11 @@ function painMap() {
             // Store their name
             p.nameField.val('Stranger '+pMap.totalConnections);
 
-            // Tell them their name
-            //sendMessage(con, 'You are known as: '+con.name);
-
-            // Add the name
-            /*var msg = p.name+' has connected!';
-
-            // Should we broadcast?
-            if(p.addName.is(':checked')) {
-                p.broadcastMessage(msg);
-            }*/
+            // Is there a camera?
+            if(peerID != null) {
+                // Pass to our streamer
+                document.getElementById("flash"+p.painID).gotStrangerPeerID(peerID);
+            }
         }
     });
 
@@ -392,6 +387,15 @@ function painMap() {
     });
 }
 
+// We got a new peerID
+painMap.prototype.setPeerID = function(painID, peerID) {
+    var p = this.findByPainID(painID);
+
+    if(p) {
+        p.peerID = peerID;
+    }
+}
+
 // Sets up a new omegle pain
 painMap.prototype.setupOmeglePain = function() {
     // Create a new pain
@@ -520,6 +524,23 @@ painMap.prototype.findByID = function(client_id, remove) {
     return null;
 }
 
+// Finds a pain by client_id
+painMap.prototype.findByPainID = function(painID) {
+    // Loop over all pains
+    for(var key in this.pains) {
+        // Grab the pain
+        var p = this.pains[key];
+
+        // Check if this is the one we were looking for
+        if(p.painID == painID) {
+            return p;
+        }
+    }
+
+    // Nothing found
+    return null;
+}
+
 // Disconnects someone
 painMap.prototype.doDisconnect = function(client_id, name) {
     // Find and remove the pain
@@ -601,7 +622,39 @@ pain.prototype.setup = function(socket) {
     var tr = $('<tr>');
     this.container.append(tr);
 
-    var td = $('<td class="omegleWindowContainer">');
+    var td = $('<td>');
+    tr.append(td);
+
+    var flashCon = $('<div class="flashCon">').hide();
+    td.append(flashCon);
+
+    this.flash = $('<object type="application/x-shockwave-flash" data="flash/webcams.swf" width="320" height="240" id="flash'+this.painID+'">');
+    flashCon.append(this.flash);
+
+    // Give a short delay for it to load, then send painID
+    var painID = this.painID;
+    var flash = document.getElementById("flash"+this.painID);
+    var initFlash;
+
+    // Function to setup flash
+    initFlash = function() {
+        // Check if it exists yet
+        if(flash.setPainID) {
+            // Pass variables
+            flash.setPainID(painID);
+        } else {
+            // Try again shortly
+            setTimeout(initFlash, 100);
+        }
+    }
+
+    // Attempt to setup flash
+    initFlash();
+
+    tr = $('<tr>');
+    this.container.append(tr);
+
+    td = $('<td class="omegleWindowContainer">');
     tr.append(td);
 
     this.field = $('<div class="omegleWindow">');
@@ -661,6 +714,20 @@ pain.prototype.setup = function(socket) {
     this.con.append($('<label for="any'+this.painID+'">').text('Any College:'));
     this.anyCollge = $('<input id="any'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.anyCollge);
+
+    this.con.append($('<br>'));
+
+    // Video Options
+    this.con.append($('<label for="video'+this.painID+'">').text('Video:'));
+    this.video = $('<input id="video'+this.painID+'">').attr('type', 'checkbox').change(function() {
+        // Hide or unhide the video stuff
+        if(this.checked) {
+            flashCon.show();
+        } else {
+            flashCon.hide();
+        }
+    }).prop('checked', false);
+    this.con.append(this.video);
 
     this.con.append($('<br>'));
 
@@ -731,6 +798,11 @@ pain.prototype.setup = function(socket) {
 
             // Reset the field
             pain.input.val(txt);
+
+            // If the field is empty, stop typing!
+            if(txt == '') {
+                pain.stopTyping();
+            }
         }
     });
 
@@ -863,6 +935,12 @@ pain.prototype.createConnection = function() {
         for(var key in omegleSettings.bonusParams) {
             params[key] = omegleSettings.bonusParams[key];
         }
+    }
+
+    // Do we have a camera? (and want webcam mode)
+    if(this.video.is(':checked') && this.peerID) {
+        params.spid = this.peerID;
+        params.camera = "USB 2.0 Web Camera";
     }
 
     // Send the request
@@ -1197,19 +1275,28 @@ function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+// The main pain map
+var mainPainMap;
+
+// peerID stuff for streaming video
+function setPeerID(painID, newPeerID) {
+    // Pass the event
+    mainPainMap.setPeerID(painID, newPeerID);
+}
+
 $(document).ready(function(){
     // Create the pain manager
-    var pains = new painMap();
+    mainPainMap = new painMap();
 
     // Hook the new window buttons
     $('#newOmegleWindow').click(function() {
         // Setup a new pain
-        pains.setupOmeglePain();
+        mainPainMap.setupOmeglePain();
     });
 
     $('#newCleverBot').click(function() {
         // Setup a new pain
-        pains.setupCleverBotPain();
+        mainPainMap.setupCleverBotPain();
     });
 
     // Stop accidental navigation away

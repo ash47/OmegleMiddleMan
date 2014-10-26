@@ -77,6 +77,12 @@ function Omegle(args) {
             this.topics = args.topics;
             this.use_likes = 1;
         }
+
+        // Check for a camera
+        if(args.camera && args.spid) {
+            this.camera = args.camera;
+            this.spid = args.spid;
+        }
     }
 
     // Reset our ID when the stranger disconnects
@@ -170,7 +176,9 @@ Omegle.prototype.start = function(callback) {
         college_auth: this.college_auth,
         any_college: this.any_college,
         wantsspy: this.wantsspy,
-        ask: this.ask
+        ask: this.ask,
+        spid: this.spid,
+        camera: this.camera,
     }), function(res) {
         // Ensure the request worked
         if (res.statusCode !== 200) {
@@ -285,7 +293,6 @@ Omegle.prototype.eventReceived = function(data) {
     if (data != null) {
         for (_i = 0, _len = data.length; _i < _len; _i++) {
             event = data[_i];
-            console.log(event);
             this.emit.apply(this, event);
         }
     }

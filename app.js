@@ -81,9 +81,9 @@ io.on('connection', function(socket) {
             });
 
             // Omegle found us a partner
-            om.on('connected', function() {
+            om.on('connected', function(peerID) {
                 // Tell the client
-                socket.emit('omegleConnected', realClientID);
+                socket.emit('omegleConnected', realClientID, peerID);
 
                 // Give a brief delay before making a new connection
                 setTimeout(function() {
