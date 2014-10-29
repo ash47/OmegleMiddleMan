@@ -213,6 +213,10 @@ function painMap() {
         pMap.totalConnections++;
 
         if(p) {
+            // Store the time they connected
+            p.startTime = new Date().getTime();
+
+            // Tell the person!
             p.addTextLine('A stranger was connected!');
 
             // Auto send message
@@ -385,6 +389,9 @@ function painMap() {
             p.socket.emit('omegleDisconnect', client_id);
         }
     });
+
+    // Update the times
+    this.updateTimes();
 }
 
 // We got a new peerID
@@ -449,13 +456,18 @@ painMap.prototype.updateBroadcast = function() {
 
             // Create and store the checkbox
             var tick = $('<input type="checkbox">');
-            p.broadcast.append(tick);
-            p.broadcastFields.push(tick);
 
             // Check if the tick is needed
             if(p == p2) {
-                // Disable the checkbox
-                tick.prop("disabled", true);
+                var a = $('<div class="broadcastSelf">');
+
+                p.broadcast.append(a);
+
+                a.append(tick);
+                p.broadcastFields.push(tick);
+            } else {
+                p.broadcast.append(tick);
+                p.broadcastFields.push(tick);
             }
 
             // Copy in old value
@@ -484,13 +496,18 @@ painMap.prototype.updateBroadcast = function() {
 
             // Create and store the checkbox
             var tick = $('<input type="checkbox">');
-            p.addName.append(tick);
-            p.addNameFields.push(tick);
 
             // Check if the tick is needed
             if(p == p2) {
-                // Disable the checkbox
-                tick.prop("disabled", true);
+                var a = $('<div class="broadcastSelf">');
+
+                p.addName.append(a);
+
+                a.append(tick);
+                p.addNameFields.push(tick);
+            } else {
+                p.addName.append(tick);
+                p.addNameFields.push(tick);
             }
 
             // Copy in old value
@@ -579,6 +596,25 @@ painMap.prototype.doDisconnect = function(client_id, name) {
         // Reset button
         p.updateButton('New');
     }
+}
+
+// Updates the times in pains
+painMap.prototype.updateTimes = function() {
+    // Loop over all pains
+    for(var key in this.pains) {
+        // Grab the pain
+        var p = this.pains[key];
+
+        if(p) {
+            p.updateTime();
+        }
+    }
+
+    // Update the times again in 100ms
+    var _this = this;
+    setTimeout(function() {
+        _this.updateTimes();
+    }, 100);
 }
 
 // The total number of pains
@@ -690,6 +726,9 @@ pain.prototype.setup = function(socket) {
     // Add the moderated button
     this.addModeratedButton();
 
+    this.timeField = $('<textarea class="timeField">').attr('type', 'text');
+    this.con.append(this.timeField);
+
     this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
     this.con.append(this.nameField);
 
@@ -708,7 +747,7 @@ pain.prototype.setup = function(socket) {
     this.con.append(this.useLikes);
 
     this.con.append($('<label for="college'+this.painID+'">').text('College:'));
-    this.college = $('<input id="college'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.college = $('<input id="college'+this.painID+'">').attr('type', 'checkbox').prop('checked', false);
     this.con.append(this.college);
 
     this.con.append($('<label for="any'+this.painID+'">').text('Any College:'));
@@ -1078,7 +1117,7 @@ pain.prototype.broadcastMessage = function(msg) {
     for(var i=0; i<pains.length; i++) {
         // Attempt to grab a pain
         var p = pains[i];
-        if(p && p != this && p.connected && !p.captcha) {
+        if(p && p.connected && !p.captcha) {
             // Attempt to grab the tick that coorosponds with it
             var tick = this.broadcastFields[i];
             var tick2 = this.addNameFields[i];
@@ -1113,7 +1152,7 @@ pain.prototype.broadcastTyping = function() {
     for(var i=0; i<pains.length; i++) {
         // Attempt to grab a pain
         var p = pains[i];
-        if(p && p != this) {
+        if(p) {
             // Attempt to grab the tick that coorosponds with it
             var tick = this.broadcastFields[i];
             if(tick) {
@@ -1194,10 +1233,35 @@ pain.prototype.printTimeConnected = function() {
     }
 }
 
+// Adds a moderate option button
 pain.prototype.addModeratedButton = function() {
     this.con.append($('<label for="mod'+this.painID+'">').text('Moderated:'));
     this.moderated = $('<input id="mod'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.moderated);
+}
+
+// Updates the time display for this window
+pain.prototype.updateTime = function() {
+    if(!this.startTime) return;
+
+    // Workout how long we have been connected
+    var time = (new Date().getTime()) - this.startTime;
+
+    // Convert to something useful
+    var min = (time/1000/60) << 0;
+    var sec = Math.floor((time/1000) % 60);
+
+    // Build nice minute handler
+    var minCon = '';
+    if(min > 0) {
+        minCon = min+'m ';
+    }
+
+    // Build nice second handler
+    var secCon = sec+'s';
+
+    // Log it
+    this.timeField.val(minCon+secCon);
 }
 
 /*

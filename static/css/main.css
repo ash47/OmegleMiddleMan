@@ -57,6 +57,7 @@ li {
     width: 100%;
     height:120px;
     border: 4px solid #AAA;
+    resize: none;
 }
 
 .omegleWindowContainer {
@@ -83,18 +84,29 @@ li {
 .omegleAutoMessage {
     width: 250px;
     height:40px;
+    resize: none;
 }
 
 .nameField {
-    width: 240px;
+    width: 180px;
     height: 20px;
     margin-left:4px;
     margin-top:2px;
+    resize: none;
+}
+
+.timeField {
+    width: 56px;
+    height: 20px;
+    margin-left:4px;
+    margin-top:2px;
+    resize: none;
 }
 
 .topicField {
     width: 420px;
     height: 80px;
+    resize: none;
 }
 
 .omegleBroadcast {
@@ -109,4 +121,10 @@ pre {
 #totalOmeglers {
     float:right;
     margin-right:10px;
+}
+
+.broadcastSelf {
+    background: #0F0;
+    padding: 1px;
+    display: inline;
 }
