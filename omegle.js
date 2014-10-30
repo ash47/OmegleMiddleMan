@@ -307,7 +307,7 @@ Omegle.prototype.stopTyping = function(callback) {
 
 Omegle.prototype.disconnect = function(callback) {
     this.postEvent('disconnect', callback);
-    return this.client_id = null;
+    this.client_id = null;
 };
 
 Omegle.prototype.eventsLoop = function() {

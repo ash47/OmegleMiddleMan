@@ -269,13 +269,8 @@ io.on('connection', function(socket) {
     // Cleanup a client when they disconnect
     socket.on('disconnect', function(){
         for(var key in omegleClients) {
-            // Disconnect the client
-            if(omegleClients[key] != null) {
-                omegleClients[key].disconnect();
-            }
-
             // Remove reference to it
-            omegleClients[key] = null;
+            delete omegleClients[key];
         }
 
         for(var key in cleverClients) {
