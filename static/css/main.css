@@ -64,6 +64,23 @@ li {
     height:100%;
 }
 
+.omegleClose {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    float:right;
+
+    border:1px solid #000;
+    background:#FFF;
+    padding:1px;
+    padding-left:4px;
+    padding-right:4px;
+}
+
 .omegleWindow {
     width:400px;
     height:100%;

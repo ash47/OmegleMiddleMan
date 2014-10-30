@@ -69,7 +69,11 @@ function painMap() {
             var p = pMap.pains[key];
 
             // Tell the client
-            p.addTextLine('Connected to server, reconnecting to omegle...');
+            if(p.connected) {
+                p.addTextLine('Connected to server, reconnecting to omegle...');
+            } else {
+                p.addTextLine('Connected to server.');
+            }
 
             // Ask it to reconnect
             p.reconnect();
@@ -468,7 +472,24 @@ painMap.prototype.setupCleverBotPain = function() {
     p.painMap = this;
 }
 
-painMap.prototype.updateBroadcast = function() {
+// Removes the given pain
+painMap.prototype.cleanup = function(painID) {
+    // Find the slotID of the pain to remove
+    var slotID = this.findSlotByPainID(painID);
+
+    // Find and remove the pain
+    var p = this.findByPainID(painID, true);
+    if(p) {
+        // Remove the pain
+        p.container.remove();
+
+        // Update the buttons
+        this.updateBroadcast(slotID);
+    }
+}
+
+// Updates the broadcasting
+painMap.prototype.updateBroadcast = function(ignoreID) {
     for(var key=0; key < this.pains.length; key++) {
         // Grab a key
         var p = this.pains[key];
@@ -476,7 +497,9 @@ painMap.prototype.updateBroadcast = function() {
         // Build a list of previous values
         var values = [];
         for(var b = 0; b < p.broadcastFields.length; b++) {
-            values.push(p.broadcastFields[b].is(':checked'));
+            if(ignoreID == null || ignoreID != b) {
+                values.push(p.broadcastFields[b].is(':checked'));
+            }
         }
 
         // Empty the broadcast holder
@@ -516,7 +539,9 @@ painMap.prototype.updateBroadcast = function() {
         // Build a list of previous values
         var values = [];
         for(var b = 0; b < p.addNameFields.length; b++) {
-            values.push(p.addNameFields[b].is(':checked'));
+            if(ignoreID == null || ignoreID != b) {
+                values.push(p.addNameFields[b].is(':checked'));
+            }
         }
 
         // Empty the broadcast holder
@@ -563,7 +588,7 @@ painMap.prototype.findByID = function(client_id, remove) {
             // Check if we need to remove it
             if(remove) {
                 // Remove the pain
-                this.pains.splice(key);
+                this.pains.splice(key, 1);
             }
 
             return p;
@@ -575,7 +600,7 @@ painMap.prototype.findByID = function(client_id, remove) {
 }
 
 // Finds a pain by client_id
-painMap.prototype.findByPainID = function(painID) {
+painMap.prototype.findByPainID = function(painID, remove) {
     // Loop over all pains
     for(var key in this.pains) {
         // Grab the pain
@@ -583,7 +608,30 @@ painMap.prototype.findByPainID = function(painID) {
 
         // Check if this is the one we were looking for
         if(p.painID == painID) {
+            // Check if we need to remove it
+            if(remove) {
+                // Remove the pain
+                this.pains.splice(key, 1);
+            }
+
             return p;
+        }
+    }
+
+    // Nothing found
+    return null;
+}
+
+// Finds a slotID
+painMap.prototype.findSlotByPainID = function(painID) {
+    // Loop over all pains
+    for(var key in this.pains) {
+        // Grab the pain
+        var p = this.pains[key];
+
+        // Check if this is the one we were looking for
+        if(p.painID == painID) {
+            return key;
         }
     }
 
@@ -703,6 +751,9 @@ pain.prototype.setup = function(socket) {
     this.flash = $('<object type="application/x-shockwave-flash" data="flash/webcams.swf" width="320" height="240" id="flash'+this.painID+'">');
     flashCon.append(this.flash);
 
+    // Grab a reference to the pain
+    var pain = this;
+
     // Give a short delay for it to load, then send painID
     var painID = this.painID;
     var flash = document.getElementById("flash"+this.painID);
@@ -731,6 +782,17 @@ pain.prototype.setup = function(socket) {
 
     this.field = $('<div class="omegleWindow">');
     td.append(this.field);
+
+    this.close = $('<div class="omegleClose">');
+    this.field.append(this.close);
+    this.close.text('X');
+    this.close.click(function() {
+        // Check if the window was closed
+        if(confirm('Are you sure you want to close this window?')) {
+            // Clean up the pain
+            pain.cleanup();
+        }
+    });
 
     tr = $('<tr>');
     this.container.append(tr);
@@ -825,9 +887,6 @@ pain.prototype.setup = function(socket) {
     this.broadcastFields = [];
     this.addNameFields = [];
 
-    // Grab a reference to the pain
-    var pain = this;
-
     // Hook new/disconnect button
     pain.hookButtons();
 
@@ -920,6 +979,12 @@ pain.prototype.setup = function(socket) {
             }
         }
     });
+}
+
+// Cleans up a pain
+pain.prototype.cleanup = function() {
+    // Ask the controller to clean us up
+    this.painMap.cleanup(this.painID);
 }
 
 // Hooks the buttons
