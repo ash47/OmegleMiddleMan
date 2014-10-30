@@ -1134,7 +1134,7 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
     var txt = p.autoMessage.val();
 
     // Do we have an auto message?
-    if(txt != '') {
+    if(txt != '' && !p.ask.is(':checked')) {
         // Start typing
         p.startTyping();
 
