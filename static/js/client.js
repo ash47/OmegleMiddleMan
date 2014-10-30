@@ -427,6 +427,7 @@ function painMap() {
             p.printTimeConnected();
 
             p.addTextLine('You have disconnected!');
+            this.addLineBreak();
 
             // Unhook
             p.connected = false;
@@ -793,11 +794,8 @@ pain.prototype.setup = function(socket) {
     td = $('<td class="omegleWindowContainer">');
     tr.append(td);
 
-    this.field = $('<div class="omegleWindow">');
-    td.append(this.field);
-
     this.close = $('<div class="omegleClose">');
-    this.field.append(this.close);
+    td.append(this.close);
     this.close.text('X');
     this.close.click(function() {
         // Check if the window was closed
@@ -806,6 +804,9 @@ pain.prototype.setup = function(socket) {
             pain.cleanup();
         }
     });
+
+    this.field = $('<div class="omegleWindow">');
+    td.append(this.field);
 
     tr = $('<tr>');
     this.container.append(tr);
@@ -931,8 +932,10 @@ pain.prototype.setup = function(socket) {
                 pain.addTextLine('<font color="blue">You:</font> '+txt);
 
                 // Confirm the D/C
-                pain.updateButton('Disconnect');
-                pain.confirmDisconnect = false;
+                if(this.connected) {
+                    pain.updateButton('Disconnect');
+                    pain.confirmDisconnect = false;
+                }
             }
         }
     });
@@ -992,8 +995,10 @@ pain.prototype.setup = function(socket) {
                 pain.addTextLine('<font color="blue">You:</font> '+txt);
 
                 // Confirm the D/C
-                pain.updateButton('Disconnect');
-                pain.confirmDisconnect = false;
+                if(this.connected) {
+                    pain.updateButton('Disconnect');
+                    pain.confirmDisconnect = false;
+                }
             }
         }
     });
@@ -1308,6 +1313,14 @@ pain.prototype.addTextLine = function(msg) {
     this.field.scrollTop(this.field.prop("scrollHeight"));
 }
 
+// Adds a line break
+pain.prototype.addLineBreak = function() {
+    this.field.append($('<hr>'));
+
+    // Scroll to the bottom:
+    this.field.scrollTop(this.field.prop("scrollHeight"));
+}
+
 // Disconnects if we are connected
 pain.prototype.disconnect = function() {
     // Check if we are already connected
@@ -1329,7 +1342,8 @@ pain.prototype.disconnect = function() {
     this.printTimeConnected();
 
     // Add a message
-    this.addTextLine('You have disconnected!<br><br>');
+    this.addTextLine('You have disconnected!');
+    this.addLineBreak();
 }
 
 // Returns the prefix for this pain
@@ -1377,7 +1391,7 @@ pain.prototype.addModeratedButton = function() {
 
 // Updates the time display for this window
 pain.prototype.updateTime = function() {
-    //if(!this.startTime) return;
+    if(!this.startTime || !this.connected) return;
 
     // Workout how long we have been connected
     var time = (new Date().getTime()) - this.startTime;
@@ -1470,7 +1484,8 @@ cleverPain.prototype.disconnect = function() {
     this.printTimeConnected();
 
     // Add a message
-    this.addTextLine('You have disconnected!<br><br>');
+    this.addTextLine('You have disconnected!');
+    this.addLineBreak();
 }
 
 // Add the modereted (actually a delayed) button
