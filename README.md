@@ -28,6 +28,7 @@ Lets you connect to two clients, then middle man the conversation, allowing you 
  - At the bottom of the window are two fields `B` and `A`, `B` is short for Broadcast, `A` is short for Add Name.
  - If you tick a B box, it will broadcast into all the windows you tick, if you tick the green box, it will send back what ever the user types, to themselves
  - If you have Add Name ticked as well, it will prepend the name field to all messages
+ - The order of the boxes is from left to right, the green boxes simply help you to see which window is which
 
 ###Adding preferences###
  - Navigate to `static/js` and copy the `settings_example.js` and call it `settings.js`
