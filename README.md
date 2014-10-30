@@ -22,6 +22,7 @@ Lets you connect to two clients, then middle man the conversation, allowing you 
  - **College:** This will search for college students, note: You need to setup your college settings, see the Adding prefereces section
  - **Any College:** If selected, it will search for people from any college, not jsut your own
  - **Video:** This will enable video mode
+ - **Delayed:** If selected, a random delay will be added to cleverbot's response, this is so people don't think it's a bot
 
 ### Broadcasting into other windows
  - At the bottom of the window are two fields `B` and `A`, `B` is short for Broadcast, `A` is short for Add Name.
