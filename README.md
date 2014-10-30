@@ -47,3 +47,7 @@ Lets you connect to two clients, then middle man the conversation, allowing you 
 
 ###Fix Searching###
  - It's possible your client may sit on `Creating a connection` forever, if this happens, just hit the `Fix Searching` button
+
+###Recapcha###
+ - It's possible your bot will be required to answer capchas due to spam
+ - When the capcha image appears, simply enter the answer into the chat box, and hit send / press enter, if you are correct, it will find you a new stranger, if you fail, you will get a new capcha
