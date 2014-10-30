@@ -278,6 +278,9 @@ function painMap() {
             // Loop over the likes
             for(var key in commonLikes) {
                 if(commonLikes[key].toLowerCase() == 'nomultirp') {
+                    // Log it
+                    p.addTextLine('NoMultiRP detected, dropping client...');
+
                     // Disconnect
                     pMap.doDisconnect(client_id);
                     return;
