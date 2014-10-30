@@ -61,9 +61,6 @@ io.on('connection', function(socket) {
             // Store the client
             omegleClients[client_id] = om;
 
-            console.log("yes!");
-            console.log(args);
-
             // Send this ID to the user
             socket.emit('newOmegle', client_id, args);
 
@@ -151,7 +148,7 @@ io.on('connection', function(socket) {
             https.get(toFetch, function(res) {
                 // Ensure the request worked
                 if (res.statusCode !== 200) {
-                    console.log('Captcha Failure');
+                    socket.emit('omegleError', args, 'Captcha failed.');
                     return;
                 }
 
@@ -173,7 +170,7 @@ io.on('connection', function(socket) {
                             socket.emit('omegleChallenge', args, code, challenge);
                         } else {
                             // Failure
-                            console.log('Capcha, no data passed!');
+                            socket.emit('omegleError', args, 'Capcha, no data passed!');
                         }
                     });
                 }).on('error', function(e) {
@@ -409,6 +406,7 @@ io.on('connection', function(socket) {
     });
 });
 
-httpServer.listen(3000, function() {
-    console.log('listening on *:3000');
+var omeglePortNumber = 3000;
+httpServer.listen(omeglePortNumber, function() {
+    console.log('listening on *:'+omeglePortNumber);
 });
