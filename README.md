@@ -40,7 +40,7 @@ Lets you connect to two clients, then middle man the conversation, allowing you 
   - Find the `college` cookie
   - It will be in the following form: `%5B%22<college>%22%2C%20%22<a>%3A<b>%22%5D`
   - `<college>` goes into the college tag
-  - <a>:<b> goes into the college:auth tag
+  - `<a>:<b>` goes into the college_auth tag
 
 ###Fix Searching###
  - It's possible your client may sit on `Creating a connection` forever, if this happens, just hit the `Fix Searching` button
