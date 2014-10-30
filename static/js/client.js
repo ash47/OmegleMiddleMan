@@ -49,6 +49,33 @@ function painMap() {
         }
     });
 
+    // Handle errors
+    pMap.socket.on('error', function(e) {
+        // Add disconnect to all pains
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            // Tell the client
+            p.addTextLine('Socket error: '+e.message);
+        }
+    });
+
+    // Handle reconnect
+    pMap.socket.on('connect', function () {
+        // Add disconnect to all pains
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            // Tell the client
+            p.addTextLine('Connected to server, reconnecting to omegle...');
+
+            // Ask it to reconnect
+            p.reconnect();
+        }
+    });
+
     // Server sent us info about omegle's status
     pMap.socket.on('omegleStatusInfo', function (statusInfo) {
         if(statusInfo == null) return;
@@ -66,15 +93,21 @@ function painMap() {
             // Grab the container
             var p = pMap.pains[key];
 
-            if(p.searching && p.painID == args.painID) {
+            if((p.searching || p.reconnecting) && p.painID == args.painID) {
                 // Found a connection
                 p.searching = false;
                 p.connected = true;
                 p.client_id = client_id;
                 p.confirmDisconnect = false;
 
-                // Store the start time
-                p.startTime = new Date().getTime();
+                // Are we reconnecting
+                if(p.reconnecting) {
+                    p.reconnecting = false;
+                    p.addTextLine('Reconnected!');
+                } else {
+                    // Store the start time
+                    p.startTime = new Date().getTime();
+                }
 
                 // Create the text
                 p.updateButton('Disconnect');
@@ -630,6 +663,9 @@ pain.prototype.setup = function(socket) {
     // If we are connected or not
     this.connected = false;
 
+    // If we are reconnecting or not
+    this.reconnecting = false;
+
     // If we are searching or not
     this.searching = false;
 
@@ -726,11 +762,11 @@ pain.prototype.setup = function(socket) {
     // Add the moderated button
     this.addModeratedButton();
 
-    this.timeField = $('<textarea class="timeField">').attr('type', 'text');
-    this.con.append(this.timeField);
-
     this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
     this.con.append(this.nameField);
+
+    this.timeField = $('<textarea class="timeField">').attr('type', 'text');
+    this.con.append(this.timeField);
 
     this.con.append($('<br>'));
 
@@ -992,6 +1028,21 @@ pain.prototype.createConnection = function() {
     this.updateButton('Cancel Search');
 }
 
+// Reconnects when a connection to our server fails
+pain.prototype.reconnect = function() {
+    // Are we still connected?
+    if(this.connected) {
+        // We are attempting to reconnect
+        this.reconnecting = true;
+
+        // Attempt to reconnect this session
+        this.socket.emit('reconnectOmegle', {
+            painID: this.painID,
+            client_id: this.client_id,
+        });
+    }
+}
+
 // Sends out the auto message after the given delay
 pain.prototype.sendAutoMessage = function(client_id, delay) {
     // Grab a reference to self
@@ -1186,6 +1237,7 @@ pain.prototype.disconnect = function() {
     this.connected = false;
     this.searching = false;
     this.client_id = null;
+    this.reconnecting = false;
 
     // Change text
     this.updateButton('New');
@@ -1242,14 +1294,21 @@ pain.prototype.addModeratedButton = function() {
 
 // Updates the time display for this window
 pain.prototype.updateTime = function() {
-    if(!this.startTime) return;
+    //if(!this.startTime) return;
 
     // Workout how long we have been connected
     var time = (new Date().getTime()) - this.startTime;
 
     // Convert to something useful
-    var min = (time/1000/60) << 0;
+    var hrs = (time/1000/60/60) << 0;
+    var min = ((time/1000/60) << 0) % 60;
     var sec = Math.floor((time/1000) % 60);
+
+    // Build the hour handler
+    var hrCon = '';
+    if(hrs > 0) {
+        hrCon = hrs+'h ';
+    }
 
     // Build nice minute handler
     var minCon = '';
@@ -1258,10 +1317,13 @@ pain.prototype.updateTime = function() {
     }
 
     // Build nice second handler
-    var secCon = sec+'s';
+    var secCon = '';
+    if(sec > 0) {
+        secCon = sec+'s';
+    }
 
     // Log it
-    this.timeField.val(minCon+secCon);
+    this.timeField.val(hrCon+minCon+secCon);
 }
 
 /*
@@ -1315,6 +1377,7 @@ cleverPain.prototype.disconnect = function() {
     // Reset vars
     this.connected = false;
     this.searching = false;
+    this.reconnecting = false;
     this.client_id = null;
 
     // Change text

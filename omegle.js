@@ -29,6 +29,11 @@ function Omegle(args) {
     // Ensure we have an args array
     if(args == null) args = {};
 
+    // Do we have a client id?
+    if(args.client_id) {
+        this.client_id = args.client_id;
+    }
+
     // Store data
     this.userAgent = args.userAgent || "omegle node.js npm package/" + version;
     this.host = args.host || 'front8.omegle.com';
@@ -95,6 +100,12 @@ function Omegle(args) {
 // Add event emitter methods
 util.inherits(Omegle, EventEmitter);
 
+// Store error handler
+Omegle.prototype.errorHandler = function(callback) {
+    // Store it
+    this.errorCallback = callback;
+}
+
 Omegle.prototype.requestGet = function(path, callback) {
     return this.requestFull('GET', path, false, true, callback);
 };
@@ -145,11 +156,22 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
 
     // Handle disconnect error
     req.on('error', function(error) {
-        // Log the error
-        console.log('ERROR (' + getTimeStamp() + '): ' + error.message);
+        // Grab the message
+        var msg = 'ERROR (' + getTimeStamp() + '): ' + error.message;
 
-        // Resend the message
-        thisOmegle.requestFull(method, path, data, keepAlive, callback);
+        // Check if we have a callback
+        if(thisOmegle.errorCallback) {
+            // Run the callback
+            thisOmegle.errorCallback(msg);
+        } else {
+            // Log the error
+            console.log(msg);
+        }
+
+        // Resend the request after a short delay
+        setTimeout(function() {
+            thisOmegle.requestFull(method, path, data, keepAlive, callback);
+        }, 1000);
     });
 
     // Submit form data
@@ -160,6 +182,22 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
     return req.end();
 };
 
+// Attempst to reconnect
+Omegle.prototype.reconnect = function(callback) {
+    // Ensure we have a client_id
+    if(this.client_id == null) {
+        callback('No client_id found.');
+        return;
+    }
+
+    // Emit the new ID event
+    this.emit('newid', this.client_id);
+
+    // Start the events loop again
+    this.eventsLoop();
+}
+
+// Connects
 Omegle.prototype.start = function(callback) {
     var _this = this;
 
@@ -275,12 +313,12 @@ Omegle.prototype.disconnect = function(callback) {
 Omegle.prototype.eventsLoop = function() {
     var _this = this;
 
-    return this.requestKA('/events', {
+    this.requestKA('/events', {
         id: this.client_id
     }, function(res) {
         if (res.statusCode === 200) {
-            return getAllData(res, function(eventData) {
-                return _this.eventReceived(eventData);
+            getAllData(res, function(eventData) {
+                _this.eventReceived(eventData);
             });
         }
     });
@@ -298,7 +336,7 @@ Omegle.prototype.eventReceived = function(data) {
     }
 
     if (this.client_id) {
-        return this.eventsLoop();
+        this.eventsLoop();
     }
 };
 

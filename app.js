@@ -39,52 +39,71 @@ io.on('connection', function(socket) {
             // Store the current pain
             currentPain = args.painID;
 
-            // Create the new omegle instance
-            var om = new Omegle(args);
+            // Make a connection
+            makeConnection(args, false);
+        }
+    }
 
-            // A store for the clientID
-            var realClientID;
+    // Makes the actual connection
+    function makeConnection(args, reconnect) {
+        // Create the new omegle instance
+        var om = new Omegle(args);
 
-            om.on('newid', function(client_id) {
-                // Store the client
-                omegleClients[client_id] = om;
+        // A store for the clientID
+        var realClientID;
 
-                // Send this ID to the user
-                socket.emit('newOmegle', client_id, args);
+        // Handle errors
+        om.errorHandler(function(msg) {
+            socket.emit('omegleError', args, msg);
+        });
 
-                // Store client ID
-                realClientID = client_id;
-            });
+        om.on('newid', function(client_id) {
+            // Store the client
+            omegleClients[client_id] = om;
 
-            // Omegle has banned us
-            om.on('antinudeBanned', function() {
+            console.log("yes!");
+            console.log(args);
+
+            // Send this ID to the user
+            socket.emit('newOmegle', client_id, args);
+
+            // Store client ID
+            realClientID = client_id;
+        });
+
+        // Omegle has banned us
+        om.on('antinudeBanned', function() {
+            if(!reconnect) {
                 // No longer building a connection
                 buildingConnection = false;
 
                 // Move on
                 buildConnections();
+            }
 
-                // Send this ID to the user
-                socket.emit('omegleBanned', args);
-            });
+            // Send this ID to the user
+            socket.emit('omegleBanned', args);
+        });
 
-            // There was an error
-            om.on('error', function(err) {
-                // Send this ID to the user
-                socket.emit('omegleError', args, err);
-            });
+        // There was an error
+        om.on('error', function(err) {
+            // Send this ID to the user
+            socket.emit('omegleError', args, err);
+        });
 
-            // Omegle is finding a partner
-            om.on('waiting', function() {
-                // Tell the client
-                socket.emit('omegleWaiting', realClientID);
-            });
+        // Omegle is finding a partner
+        om.on('waiting', function() {
+            // Tell the client
+            socket.emit('omegleWaiting', realClientID);
+        });
 
-            // Omegle found us a partner
-            om.on('connected', function(peerID) {
-                // Tell the client
-                socket.emit('omegleConnected', realClientID, peerID);
+        // Omegle found us a partner
+        om.on('connected', function(peerID) {
+            // Tell the client
+            socket.emit('omegleConnected', realClientID, peerID);
 
+            // Make sure we're not reconnecting
+            if(!reconnect) {
                 // Give a brief delay before making a new connection
                 setTimeout(function() {
                     // No current pain
@@ -96,46 +115,48 @@ io.on('connection', function(socket) {
                     // Try to build any remaining connections
                     buildConnections();
                 }, 100);
-            });
+            }
 
-            // Omegle is telling us our common likes
-            om.on('commonLikes', function(commonLikes) {
-                // Tell the client
-                socket.emit('omegleCommonLikes', realClientID, commonLikes);
-            });
+        });
 
-            // Omegle is sending us status info
-            om.on('statusInfo', function(statusInfo) {
-                // Tell the client
-                socket.emit('omegleStatusInfo', statusInfo);
-            });
+        // Omegle is telling us our common likes
+        om.on('commonLikes', function(commonLikes) {
+            // Tell the client
+            socket.emit('omegleCommonLikes', realClientID, commonLikes);
+        });
 
-            // Omegle is telling us our partner's college
-            om.on('partnerCollege', function(college) {
-                // Tell the client
-                socket.emit('omeglePartnerCollege', realClientID, college);
-            });
+        // Omegle is sending us status info
+        om.on('statusInfo', function(statusInfo) {
+            // Tell the client
+            socket.emit('omegleStatusInfo', statusInfo);
+        });
 
-            // Omegle sent us a question
-            om.on('question', function(question) {
-                // Tell the client
-                socket.emit('omegleQuestion', realClientID, question);
-            });
+        // Omegle is telling us our partner's college
+        om.on('partnerCollege', function(college) {
+            // Tell the client
+            socket.emit('omeglePartnerCollege', realClientID, college);
+        });
 
-            // Handle the capcha
-            function handleCaptcha(code) {
-                // URL with challenge data
-                var toFetch = 'https://www.google.com/recaptcha/api/challenge?k='+code+'&cahcestop='+Math.random();
+        // Omegle sent us a question
+        om.on('question', function(question) {
+            // Tell the client
+            socket.emit('omegleQuestion', realClientID, question);
+        });
 
-                https.get(toFetch, function(res) {
-                    // Ensure the request worked
-                    if (res.statusCode !== 200) {
-                        console.log('Captcha Failure');
-                        return;
-                    }
+        // Handle the capcha
+        function handleCaptcha(code) {
+            // URL with challenge data
+            var toFetch = 'https://www.google.com/recaptcha/api/challenge?k='+code+'&cahcestop='+Math.random();
 
-                    // Process the event
-                    om.getAllData(res, function(data) {
+            https.get(toFetch, function(res) {
+                // Ensure the request worked
+                if (res.statusCode !== 200) {
+                    console.log('Captcha Failure');
+                    return;
+                }
+
+                // Process the event
+                om.getAllData(res, function(data) {
                         // Make sure we got some data
                         if(data != null) {
                             // Copy important data
@@ -156,7 +177,8 @@ io.on('connection', function(socket) {
                         }
                     });
                 }).on('error', function(e) {
-                  console.log("Got error: " + e.message);
+                    // Send to client
+                    socket.emit('omegleError', args, 'Got capcha error: ' + e.message);
                 });
             }
 
@@ -206,13 +228,24 @@ io.on('connection', function(socket) {
                 socket.emit('omegleStoppedTyping', realClientID);
             });
 
-            // Connect to a client
-            om.start(function(err) {
-                if (err) {
-                    console.log("Error start " + err);
-                }
-            });
-        }
+            // Are we doing a reconnect?
+            if(reconnect) {
+                // Reconnect to a client
+                om.reconnect(function(err) {
+                    if (err) {
+                        // Send to client
+                        socket.emit('omegleError', args, 'Error reconnecting: ' + err);
+                    }
+                });
+            } else {
+                // Connect to a client
+                om.start(function(err) {
+                    if (err) {
+                        // Send to client
+                        socket.emit('omegleError', args, 'Error starting: ' + err);
+                    }
+                });
+            }
     }
 
     // Creates a new connection
@@ -294,7 +327,8 @@ io.on('connection', function(socket) {
             // Send the message
             omegleClients[client_id].send(msg, function(err) {
                 if (err) {
-                    console.log('Error send '+err);
+                    // Send to client
+                    socket.emit('omegleError', args, 'Error sending: ' + err);
                 }
             });
         }
@@ -316,7 +350,8 @@ io.on('connection', function(socket) {
             // Send the message
             omegleClients[client_id].startTyping(function(err) {
                 if(err) {
-                    console.log('Error typing '+err)
+                    // Send to client
+                    socket.emit('omegleError', args, 'Error typing: ' + err);
                 }
             });
         }
@@ -329,7 +364,8 @@ io.on('connection', function(socket) {
             // Send the message
             omegleClients[client_id].stopTyping(function(err) {
                 if(err) {
-                    console.log('Error stopping typing '+err)
+                    // Send to client
+                    socket.emit('omegleError', args, 'Error stopping typing: ' + err);
                 }
             });
         }
@@ -339,6 +375,12 @@ io.on('connection', function(socket) {
     socket.on('newOmegle', function(args){
         // Setup a new connection
         setupNewConnection(args);
+    });
+
+    // Reconnects a client
+    socket.on('reconnectOmegle', function(args) {
+        // Attempt to reconnect
+        makeConnection(args, true);
     });
 
     // Client is asking for a new clever client
