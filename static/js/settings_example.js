@@ -38,6 +38,9 @@ omegleSettings = {
     // Turn video mode on by default
     video: false,
 
+    // Should cleverbot have a delay
+    delayed: true,
+
     // College stuff
     // college: '',
     // college_auth: '',

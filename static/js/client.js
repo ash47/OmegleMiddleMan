@@ -14,6 +14,7 @@ var omegleSettings = omegleSettings || {
     useCollege: false,
     anyCollge: true,
     video: false,
+    delayed: true
 };
 
 // Default topics
@@ -1475,7 +1476,7 @@ cleverPain.prototype.disconnect = function() {
 // Add the modereted (actually a delayed) button
 cleverPain.prototype.addModeratedButton = function() {
     this.con.append($('<label for="mod'+this.painID+'">').text('Delayed:'));
-    this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.modereted);
+    this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.delayed);
     this.con.append(this.moderated);
 }
 
