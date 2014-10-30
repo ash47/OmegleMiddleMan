@@ -2,17 +2,26 @@
     Client
 */
 
-// Default message to auto send
-//var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
-var defaultAutoMessage = 'hi';
-
 // Default settings
 var omegleSettings = omegleSettings || {
-    defaultTopics: ''
+    defaultTopics: 'noMultiRP,rp,roleplay',
+    defaultMessage: 'Please make a copy of static/js/settings_example.js, and call it static/js/settings.js You can change the settings to fit your needs',
+    reroll: true,
+    moderated: true,
+    spy: false,
+    ask: false,
+    likes: true,
+    useCollege: false,
+    anyCollge: true,
+    video: false,
 };
 
 // Default topics
 var defaultTopics = omegleSettings.defaultTopics;
+
+// Default message to auto send
+//var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
+var defaultAutoMessage = omegleSettings.defaultMessage;
 
 function painMap() {
     /*
@@ -821,7 +830,7 @@ pain.prototype.setup = function(socket) {
     this.con.append($('<br>'));
 
     this.con.append($('<label for="roll'+this.painID+'">').text('Reroll:'));
-    this.roll = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.roll = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.reroll);
     this.con.append(this.roll);
 
     // Add the moderated button
@@ -836,23 +845,23 @@ pain.prototype.setup = function(socket) {
     this.con.append($('<br>'));
 
     this.con.append($('<label for="spy'+this.painID+'">').text('Spy:'));
-    this.spy = $('<input id="spy'+this.painID+'">').attr('type', 'checkbox').prop('checked', false);
+    this.spy = $('<input id="spy'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.spy);
     this.con.append(this.spy);
 
     this.con.append($('<label for="ask'+this.painID+'">').text('Ask:'));
-    this.ask = $('<input id="ask'+this.painID+'">').attr('type', 'checkbox').prop('checked', false);
+    this.ask = $('<input id="ask'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.ask);
     this.con.append(this.ask);
 
     this.con.append($('<label for="likes'+this.painID+'">').text('Use Likes:'));
-    this.useLikes = $('<input id="likes'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.useLikes = $('<input id="likes'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.likes);
     this.con.append(this.useLikes);
 
     this.con.append($('<label for="college'+this.painID+'">').text('College:'));
-    this.college = $('<input id="college'+this.painID+'">').attr('type', 'checkbox').prop('checked', false);
+    this.college = $('<input id="college'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.useCollege);
     this.con.append(this.college);
 
     this.con.append($('<label for="any'+this.painID+'">').text('Any College:'));
-    this.anyCollge = $('<input id="any'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.anyCollge = $('<input id="any'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.anyCollge);
     this.con.append(this.anyCollge);
 
     this.con.append($('<br>'));
@@ -866,8 +875,13 @@ pain.prototype.setup = function(socket) {
         } else {
             flashCon.hide();
         }
-    }).prop('checked', false);
+    }).prop('checked', omegleSettings.video);
     this.con.append(this.video);
+
+    // Should we show the video stuff?
+    if(omegleSettings.video) {
+        flashCon.show();
+    }
 
     this.con.append($('<br>'));
 
@@ -1356,7 +1370,7 @@ pain.prototype.printTimeConnected = function() {
 // Adds a moderate option button
 pain.prototype.addModeratedButton = function() {
     this.con.append($('<label for="mod'+this.painID+'">').text('Moderated:'));
-    this.moderated = $('<input id="mod'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.moderated = $('<input id="mod'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.moderated);
     this.con.append(this.moderated);
 }
 
@@ -1461,7 +1475,7 @@ cleverPain.prototype.disconnect = function() {
 // Add the modereted (actually a delayed) button
 cleverPain.prototype.addModeratedButton = function() {
     this.con.append($('<label for="mod'+this.painID+'">').text('Delayed:'));
-    this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.modereted);
     this.con.append(this.moderated);
 }
 

@@ -7,9 +7,36 @@ omegleSettings = {
         'roleplay'
     ].join(),
 
+    // The default message to send to people
+    defaultMessage: 'Please make a copy of static/js/settings_example.js, and call it static/js/settings.js',
+
     // Extra params to add
     bonusParams: {
     },
+
+    // Turn reroll on by default
+    reroll: true,
+
+    // Turn moderated on by default
+    moderated: true,
+
+    // Turn spy mode on by default
+    spy: false,
+
+    // Turn ask question on by default
+    ask: false,
+
+    // Turn use likes on by default
+    likes: true,
+
+    // Turn use college on by default
+    useCollege: false,
+
+    // Turn use any college on by default
+    anyCollge: true,
+
+    // Turn video mode on by default
+    video: false,
 
     // College stuff
     // college: '',
