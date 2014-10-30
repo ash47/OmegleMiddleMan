@@ -14,14 +14,14 @@ Lets you connect to two clients, then middle man the conversation, allowing you 
  - At the top of the screen you will see `New Omegle Window` and `New Cleverbot Window`
  - Clicking these will add a new Omegle window, or a new Cleverbot window respectively
  - Most of the search options will be displayed on both the omegle and cleverbot windows, however most only work with omegle.
- - Reroll: This option will reconnect you if the stranger disconnects
- - Moderated: If selected, you will be connected to the moderated section of omegle, you need this selected if you wish to talk to no perverts
- - Spy: This check box will enable spy mode
- - Ask: If spy is selected, it will ask the question that is in the box next to the `send` button
- - Use Likes: This option will use the likes listed in the box at the bottom of the screen
- - College: This will search for college students, note: You need to setup your college settings, see the Adding prefereces section
- - Any College: If selected, it will search for people from any college, not jsut your own
- - Video: This will enable video mode
+ - **Reroll:** This option will reconnect you if the stranger disconnects
+ - **Moderated:** If selected, you will be connected to the moderated section of omegle, you need this selected if you wish to talk to no perverts
+ - **Spy:** This check box will enable spy mode
+ - **Ask:** If spy is selected, it will ask the question that is in the box next to the `send` button
+ - **Use Likes:** This option will use the likes listed in the box at the bottom of the screen
+ - **College:** This will search for college students, note: You need to setup your college settings, see the Adding prefereces section
+ - **Any College:** If selected, it will search for people from any college, not jsut your own
+ - **Video:** This will enable video mode
 
 ### Broadcasting into other windows
  - At the bottom of the window are two fields `B` and `A`, `B` is short for Broadcast, `A` is short for Add Name.
