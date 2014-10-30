@@ -1,7 +1,8 @@
 OmegleMiddleMan
 ===============
 
-Lets you connect to two clients, then middle man the conversation, allowing you to intercept, change and even add new messages.
+ - Lets you connect to two or more clients, then middle man the conversation, allowing you to intercept, change and even add new messages.
+ - It also lets you connect to cleverbot. You can trick people into talk to cleverbot :)
 
 ###Requirements / Setup###
  - You need [Node.js](http://nodejs.org/)
