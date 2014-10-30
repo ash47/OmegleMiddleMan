@@ -25,6 +25,10 @@ OmegleMiddleMan
  - **Video:** This will enable video mode
  - **Delayed:** If selected, a random delay will be added to cleverbot's response, this is so people don't think it's a bot
 
+###Auto greeting people###
+ - You can enter a message to auto send to people, or leave it blank if you don't want to send the message
+ - By default, it will send `hi`
+
 ### Broadcasting into other windows
  - At the bottom of the window are two fields `B` and `A`, `B` is short for Broadcast, `A` is short for Add Name.
  - If you tick a B box, it will broadcast into all the windows you tick, if you tick the green box, it will send back what ever the user types, to themselves
