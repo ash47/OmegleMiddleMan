@@ -42,5 +42,8 @@ Lets you connect to two clients, then middle man the conversation, allowing you 
   - `<college>` goes into the college tag
   - `<a>:<b>` goes into the college_auth tag
 
+###Stopping your bot from connecting to itself###
+ - Add `noMultiRP` as an interest, If the bot finds someone with this interest, it will auto disconenct and move on
+
 ###Fix Searching###
  - It's possible your client may sit on `Creating a connection` forever, if this happens, just hit the `Fix Searching` button
