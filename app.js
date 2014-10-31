@@ -49,6 +49,9 @@ io.on('connection', function(socket) {
         // Create the new omegle instance
         var om = new Omegle(args);
 
+        // Store the args
+        om.args = args;
+
         // A store for the clientID
         var realClientID;
 
@@ -314,13 +317,15 @@ io.on('connection', function(socket) {
 
     // Client wants to send a message to a stranger
     socket.on('omegleSend', function(client_id, msg) {
+        var om = omegleClients[client_id];
+
         // Check if the client even exists
-        if(omegleClients[client_id]) {
+        if(om) {
             // Send the message
-            omegleClients[client_id].send(msg, function(err) {
+            om.send(msg, function(err) {
                 if (err) {
                     // Send to client
-                    socket.emit('omegleError', args, 'Error sending: ' + err);
+                    socket.emit('omegleError', om.args, 'Error sending: ' + err);
                 }
             });
         }
@@ -337,13 +342,15 @@ io.on('connection', function(socket) {
 
     // Client started typing
     socket.on('omegleTyping', function(client_id) {
+        var om = omegleClients[client_id];
+
         // Check if the client even exists
-        if(omegleClients[client_id]) {
+        if(om) {
             // Send the message
-            omegleClients[client_id].startTyping(function(err) {
+            om.startTyping(function(err) {
                 if(err) {
                     // Send to client
-                    socket.emit('omegleError', args, 'Error typing: ' + err);
+                    socket.emit('omegleError', om.args, 'Error typing: ' + err);
                 }
             });
         }
@@ -351,13 +358,15 @@ io.on('connection', function(socket) {
 
     // Client stopped typing
     socket.on('omegleStopTyping', function(client_id) {
+        var om = omegleClients[client_id];
+
         // Check if the client even exists
-        if(omegleClients[client_id]) {
+        if(om) {
             // Send the message
-            omegleClients[client_id].stopTyping(function(err) {
+            om.stopTyping(function(err) {
                 if(err) {
                     // Send to client
-                    socket.emit('omegleError', args, 'Error stopping typing: ' + err);
+                    socket.emit('omegleError', om.args, 'Error stopping typing: ' + err);
                 }
             });
         }
