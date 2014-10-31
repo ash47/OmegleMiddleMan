@@ -670,7 +670,7 @@ painMap.prototype.doDisconnect = function(client_id, name) {
 
     // Add message to chat
     p.addTextLine(name+' has disconnected!');
-    this.addLineBreak();
+    p.addLineBreak();
 
     // Reset border color
     p.updateTalking(false);
