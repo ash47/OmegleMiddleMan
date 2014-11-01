@@ -156,9 +156,9 @@
          			// Connection manager
          			var c:Object = new Object();
 		           	c.onPeerConnect = function(stranger:NetStream):Boolean {
-		           		ExternalInterface.call("console.log", "A stranger connected!");
-		           		ExternalInterface.call("console.log", stranger.farID);
-		            	return true;
+		           		// Implement security?
+
+		           		return true;
 		           	};
 
          			// Create the send stream
