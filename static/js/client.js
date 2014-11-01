@@ -811,7 +811,7 @@ pain.prototype.setup = function(socket) {
 
     this.close = $('<div class="omegleClose">');
     td.append(this.close);
-    this.close.text('X');
+    this.close.text('x');
     this.close.click(function() {
         // Check if the window was closed
         if(confirm('Are you sure you want to close this window?')) {

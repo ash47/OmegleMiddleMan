@@ -76,9 +76,10 @@ li {
 
     border:1px solid #000;
     background:#FFF;
-    padding:1px;
-    padding-left:4px;
-    padding-right:4px;
+    padding:0px;
+    padding-left:6px;
+    padding-right:6px;
+    padding-bottom:3px;
 
     margin-top: 10px;
     margin-bottom:-40px;
