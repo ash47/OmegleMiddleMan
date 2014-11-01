@@ -446,11 +446,25 @@ function painMap() {
 }
 
 // We got a new peerID
-painMap.prototype.setPeerID = function(painID, peerID) {
-    var p = this.findByPainID(painID);
+painMap.prototype.setPeerID = function(args) {
+    var p = this.findByPainID(args.painID);
 
     if(p) {
-        p.peerID = peerID;
+        p.peerID = args.nearID;
+        p.cameras = args.cameras;
+        p.mics = args.mics;
+
+        for(var i=0; i<args.cameras.length; i++) {
+            p.camSelector.append($('<option/>').html(args.cameras[i]));
+        }
+
+        for(var i=0; i<args.mics.length; i++) {
+            p.micSelector.append($('<option/>').html(args.mics[i]));
+        }
+
+        // Show them
+        p.camSelector.show();
+        p.micSelector.show();
     }
 }
 
@@ -885,6 +899,19 @@ pain.prototype.setup = function(socket) {
     if(omegleSettings.video) {
         flashCon.show();
     }
+
+    // Append selectors
+    this.camSelector = $('<select/>').hide();;
+    this.con.append(this.camSelector);
+    this.camSelector.change(function() {
+        document.getElementById("flash"+painID).setCameraName($(this).val());
+    });
+
+    this.micSelector = $('<select/>').hide();;
+    this.con.append(this.micSelector);
+    this.micSelector.change(function() {
+        document.getElementById("flash"+painID).setCameraName($(this).find(":selected").index());
+    });
 
     this.con.append($('<br>'));
 
