@@ -148,7 +148,7 @@ function painMap() {
 
             if(p.painID == args.painID) {
                 // Add the image
-                p.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+challenge+'">');
+                p.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+challenge+'" height="57">');
 
                 // We are doing a captcha
                 p.captcha = true;
