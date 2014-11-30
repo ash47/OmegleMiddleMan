@@ -698,6 +698,12 @@ painMap.prototype.doDisconnect = function(client_id, name) {
         p.broadcastMessage(p.name+' has disconnected!');
     }*/
 
+    // New ID
+    if(p.newID.is(':checked')) {
+        // Get a new randID
+        p.newRandid();
+    }
+
     // Should we reroll?
     if(p.roll.is(':checked')) {
         // Create a connection
@@ -882,6 +888,14 @@ pain.prototype.setup = function(socket) {
     this.con.append(this.anyCollge);
 
     this.con.append($('<br>'));
+
+    // New ID
+    this.con.append($('<label for="newID'+this.painID+'">').text('NewID:'));
+    this.newID = $('<input id="newID'+this.painID+'">').attr('type', 'checkbox').change(function() {
+        // Get a new randID
+        pain.newRandid();
+    });
+    this.con.append(this.newID);
 
     // Video Options
     this.con.append($('<label for="video'+this.painID+'">').text('Video:'));
@@ -1188,6 +1202,11 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
 
 // Generates a new randid
 pain.prototype.newRandid = function() {
+    // Should we notify the user
+    if(this.randid != null) {
+        this.addTextLine('Allocated a new randID.');
+    }
+
     this.randid = '';
     var randData = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
     for(var i=0; i<8; i++) {
@@ -1372,6 +1391,12 @@ pain.prototype.disconnect = function() {
     // Add a message
     this.addTextLine('You have disconnected!');
     this.addLineBreak();
+
+    // New ID
+    if(this.newID.is(':checked')) {
+        // Get a new randID
+        this.newRandid();
+    }
 }
 
 // Returns the prefix for this pain
@@ -1519,7 +1544,7 @@ cleverPain.prototype.disconnect = function() {
 // Add the modereted (actually a delayed) button
 cleverPain.prototype.addModeratedButton = function() {
     this.con.append($('<label for="mod'+this.painID+'">').text('Delayed:'));
-    this.moderated = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.delayed);
+    this.moderated = $('<input id="mod'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.delayed);
     this.con.append(this.moderated);
 }
 
