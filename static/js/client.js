@@ -370,7 +370,7 @@ function painMap() {
             p.updateTalking(false);
 
             // Add the message
-            p.addTextLine('<font color="red">Stranger:</font> '+msg);
+            p.addTextLine('<font color="red">Stranger:</font> '+msg, msg, 'Stranger');
 
             // Check for commands
             //if(processCommands(con, msg)) return;
@@ -388,7 +388,7 @@ function painMap() {
             p.updateTalking(false);
 
             // Add the message
-            p.addTextLine('<font color="red">'+spy+':</font> '+msg);
+            p.addTextLine('<font color="red">'+spy+':</font> '+msg, msg, 'Spy');
 
             // Check for commands
             //if(processCommands(con, msg)) return;
@@ -415,7 +415,7 @@ function painMap() {
                 p.updateTalking(false);
 
                 // Add the message
-                p.addTextLine('<font color="red">Cleverbot:</font> '+msg);
+                p.addTextLine('<font color="red">Cleverbot:</font> '+msg, msg, 'Cleverbot');
 
                 // Broadcast it
                 p.broadcastMessage(msg);
@@ -924,6 +924,11 @@ pain.prototype.setup = function(socket) {
     });
     this.con.append(this.newID);
 
+    // Auto Broadcast
+    this.con.append($('<label for="autoBroadcast'+this.painID+'">').text('Auto Broadcast:'));
+    this.autoBroadcast = $('<input id="autoBroadcast'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.autoBroadcast);
+
     // Video Options
     this.con.append($('<label for="video'+this.painID+'">').text('Video:'));
     this.video = $('<input id="video'+this.painID+'">').attr('type', 'checkbox').change(function() {
@@ -998,7 +1003,7 @@ pain.prototype.setup = function(socket) {
                 pain.sendMessage(txt);
 
                 // Add it to our log
-                pain.addTextLine('<font color="blue">You:</font> '+txt);
+                pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
 
                 // Confirm the D/C
                 if(this.connected) {
@@ -1061,7 +1066,7 @@ pain.prototype.setup = function(socket) {
                 pain.sendMessage(txt);
 
                 // Add it to our log
-                pain.addTextLine('<font color="blue">You:</font> '+txt);
+                pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
 
                 // Confirm the D/C
                 if(this.connected) {
@@ -1221,7 +1226,7 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
                 p.sendMessage(txt);
 
                 // Add it to our log
-                p.addTextLine('<font color="blue">Auto:</font> '+txt);
+                p.addTextLine('<font color="blue">Auto:</font> '+txt, txt, 'Me');
             }
         }, delay);
     }
@@ -1323,8 +1328,11 @@ pain.prototype.sendMessage = function(msg) {
 }
 
 // Broadcasts a message to everyone this controller is set to broadcast to
-pain.prototype.broadcastMessage = function(msg) {
+pain.prototype.broadcastMessage = function(msg, override, nameOverride) {
     var pains = this.painMap.pains;
+
+    // Ensure auto broadcast is on
+    if(!this.autoBroadcast.is(':checked') && !override) return;
 
     // Loop over all pains
     for(var i=0; i<pains.length; i++) {
@@ -1338,18 +1346,18 @@ pain.prototype.broadcastMessage = function(msg) {
                 // Check if it's ticked
                 if(tick.is(':checked')) {
                     // Add name?
-                    if(tick2.is(':checked')) {
+                    if(tick2.is(':checked') && !nameOverride) {
                         // Send the message
                         p.sendMessage(this.getPrefix()+msg);
 
                         // Add it to our log
-                        p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+msg);
+                        p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+msg, msg, 'Broadcasted');
                     } else {
                         // Send the message
                         p.sendMessage(msg);
 
                         // Add it to our log
-                        p.addTextLine('<font color="blue">Broadcasted:</font> '+msg);
+                        p.addTextLine('<font color="blue">Broadcasted:</font> '+msg, msg, 'Broadcasted');
                     }
                 }
             }
@@ -1380,8 +1388,42 @@ pain.prototype.broadcastTyping = function() {
 }
 
 // Adds a line of text
-pain.prototype.addTextLine = function(msg) {
-    this.field.append($('<pre>').html(msg));
+pain.prototype.addTextLine = function(msg, raw, prefix) {
+    // Patch the msg
+    var pos = msg.indexOf('</font>');
+    if(pos != -1) {
+        var left = msg.substring(0, pos+7);
+        var right = msg.substring(pos+7);
+
+        msg = '<table class="chatTable" cellspacing="0" cellpadding="0"><tr><td class="chatLeft">' + left + '</td><td class="chatRight">' + right + '</td></tr></table>';
+
+        console.log('"' + left + '"');
+        console.log('"' + right + '"');
+    }
+
+    // Add the message
+    var pre = $('<pre>');
+    this.field.append(pre.html(msg));
+
+    var tbl = $('td', pre);
+    if(tbl.length > 0) {
+        pre = tbl.first();
+    }
+
+    // Check if there is a raw container
+    if(raw) {
+        var thisPain = this;
+
+        // Add the send button
+        pre.prepend($('<span class="easySend">').text('>').click(function() {
+            // Decide how to send the message
+            if(prefix == 'Me') {
+                thisPain.broadcastMessage(raw, true, true);
+            } else {
+                thisPain.broadcastMessage(raw, true);
+            }
+        }));
+    }
 
     // Scroll to the bottom:
     this.field.scrollTop(this.field.prop("scrollHeight"));

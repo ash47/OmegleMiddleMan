@@ -36,6 +36,26 @@ li {
     height:100%;
 }
 
+.chatTable {
+    margin: 0px;
+    margin-left: -8px;
+    padding: 0px;
+    vertical-align: top;
+}
+
+.chatLeft {
+    margin: 0px;
+    padding: 0px;
+    vertical-align: top;
+}
+
+.chatRight {
+    margin: 0px;
+    padding: 0px;
+    padding-left: 4px;
+    vertical-align: top;
+}
+
 .omegleContainer input[type="submit"] {
     width: 80px;
     height: 40px;
@@ -149,4 +169,21 @@ pre {
     background: #0F0;
     padding: 1px;
     display: inline;
+}
+
+.easySend {
+    width: 16px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-right: 4px;
+    color: #000;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    cursor: hand;
 }
