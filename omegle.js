@@ -369,7 +369,7 @@ function formFormat(data) {
         _results = [];
         for (k in data) {
             v = data[k];
-            _results.push("" + k + "=" + v);
+            _results.push("" + k + "=" + encodeURIComponent(v));
         }
 
         return _results;

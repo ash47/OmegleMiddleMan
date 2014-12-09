@@ -140,6 +140,27 @@ function painMap() {
     });
 
     // Recapcha
+    pMap.socket.on('omegleNewChallenge', function(args, code) {
+        // Search for the one that needs it to be solved
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            if(p.painID == args.painID) {
+                // Add the image
+                p.addTextLine('Loading captcha...');
+                $.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
+                    p.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+RecaptchaState.challenge+'" height="57">');
+                });
+
+                // We are doing a captcha
+                p.captcha = true;
+                p.code = code;
+                p.challenge = challenge;
+            }
+        }
+    });
+
     pMap.socket.on('omegleChallenge', function(args, code, challenge) {
         // Search for the one that needs it to be solved
         for(var key in pMap.pains) {

@@ -145,6 +145,12 @@ io.on('connection', function(socket) {
 
         // Handle the capcha
         function handleCaptcha(code) {
+            // Use the new captcha method
+            socket.emit('omegleNewChallenge', args, code);
+
+            // Don't run the old method
+            return;
+
             // URL with challenge data
             var toFetch = 'https://www.google.com/recaptcha/api/challenge?k='+code+'&cahcestop='+Math.random();
 
