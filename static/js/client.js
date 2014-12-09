@@ -149,10 +149,16 @@ function painMap() {
             if(p.painID == args.painID) {
                 // Add the image
                 p.addTextLine('Loading captcha, type below and press send.');
-                $.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
-                    p.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+RecaptchaState.challenge+'" height="57">');
-                    p.challenge = RecaptchaState.challenge;
-                });
+
+                // Scope fix
+                (function() {
+                    var pp = p;
+
+                    $.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
+                        pp.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+RecaptchaState.challenge+'" height="57">');
+                        pp.challenge = RecaptchaState.challenge;
+                    });
+                })();
 
                 // We are doing a captcha
                 p.captcha = true;
