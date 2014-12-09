@@ -148,6 +148,8 @@ io.on('connection', function(socket) {
             // Use the new captcha method
             socket.emit('omegleNewChallenge', args, code);
 
+            challenges[code] = om;
+
             // Don't run the old method
             return;
 
@@ -339,7 +341,7 @@ io.on('connection', function(socket) {
 
     // Client is trying to answer a captcha
     socket.on('omegleChallenge', function(code, challenge, answer) {
-        var om = challenges[challenge];
+        var om = challenges[code];
 
         if(om != null) {
             om.recaptcha(challenge, answer);

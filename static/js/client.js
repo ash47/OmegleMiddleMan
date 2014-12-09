@@ -151,12 +151,12 @@ function painMap() {
                 p.addTextLine('Loading captcha...');
                 $.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
                     p.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+RecaptchaState.challenge+'" height="57">');
+                    p.challenge = RecaptchaState.challenge;
                 });
 
                 // We are doing a captcha
                 p.captcha = true;
                 p.code = code;
-                p.challenge = challenge;
             }
         }
     });
