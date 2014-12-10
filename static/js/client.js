@@ -1395,17 +1395,14 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
         var left = msg.substring(0, pos+7);
         var right = msg.substring(pos+7);
 
-        msg = '<table class="chatTable" cellspacing="0" cellpadding="0"><tr><td class="chatLeft">' + left + '</td><td class="chatRight">' + right + '</td></tr></table>';
-
-        console.log('"' + left + '"');
-        console.log('"' + right + '"');
+        msg = '<div class="chatMain"><div class="chatLeft">' + left + '</div>' + right + '</div>';
     }
 
     // Add the message
     var pre = $('<pre>');
     this.field.append(pre.html(msg));
 
-    var tbl = $('td', pre);
+    var tbl = $('.chatLeft', pre);
     if(tbl.length > 0) {
         pre = tbl.first();
     }

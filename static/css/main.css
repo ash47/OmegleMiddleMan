@@ -36,24 +36,20 @@ li {
     height:100%;
 }
 
-.chatTable {
+.chatMain {
     margin: 0px;
     margin-left: -8px;
     padding: 0px;
+    padding-left: 32px;
     vertical-align: top;
 }
 
 .chatLeft {
     margin: 0px;
+    margin-left: -32;
     padding: 0px;
     vertical-align: top;
-}
-
-.chatRight {
-    margin: 0px;
-    padding: 0px;
-    padding-left: 4px;
-    vertical-align: top;
+    display: inline;
 }
 
 .omegleContainer input[type="submit"] {
