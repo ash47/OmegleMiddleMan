@@ -1412,7 +1412,7 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
         var thisPain = this;
 
         // Add the send button
-        pre.prepend($('<span class="easySend">').text('>').click(function() {
+        pre.prepend($('<span class="easySend">').html('<b>&gt;</b>').click(function() {
             // Decide how to send the message
             if(prefix == 'Me') {
                 thisPain.broadcastMessage(raw, true, true);

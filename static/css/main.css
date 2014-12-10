@@ -171,7 +171,7 @@ pre {
     width: 16px;
     padding-left: 4px;
     padding-right: 4px;
-    margin-right: 4px;
+    margin-right: 0px;
     color: #000;
 
     -webkit-touch-callout: none;
