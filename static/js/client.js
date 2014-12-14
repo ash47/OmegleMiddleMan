@@ -550,6 +550,14 @@ painMap.prototype.setPeerID = function(args) {
     }
 }
 
+painMap.prototype.updateWidth = function() {
+    // Update pain width
+    var mainCon = $('#mainCon');
+    mainCon.css({
+        width: (440*this.pains.length)+'px'
+    });
+}
+
 // Sets up a new omegle pain
 painMap.prototype.setupOmeglePain = function() {
     // Create a new pain
@@ -564,6 +572,9 @@ painMap.prototype.setupOmeglePain = function() {
 
     // Store a reference back to this painMap
     p.painMap = this;
+
+    // Update width
+    this.updateWidth();
 }
 
 // Sets up a new cleverbot pain
@@ -580,6 +591,9 @@ painMap.prototype.setupCleverBotPain = function() {
 
     // Store a reference back to this painMap
     p.painMap = this;
+
+    // Update width
+    this.updateWidth();
 }
 
 // Removes the given pain
@@ -596,6 +610,9 @@ painMap.prototype.cleanup = function(painID) {
         // Update the buttons
         this.updateBroadcast(slotID);
     }
+
+    // Update width
+    this.updateWidth();
 }
 
 // Updates the broadcasting
@@ -848,10 +865,6 @@ pain.prototype.setup = function(socket) {
     */
 
     var mainCon = $('#mainCon');
-
-    mainCon.css({
-        width: (440*totalPains)+'px'
-    });
 
     this.container = $('<table class="omegleContainer">');
     mainCon.append(this.container);
@@ -1444,6 +1457,12 @@ pain.prototype.broadcastTyping = function() {
 
 // Adds a line of text
 pain.prototype.addTextLine = function(msg, raw, prefix) {
+    // Scroll detection
+    var shouldScroll = false;
+    if(this.field.scrollTop() + this.field.innerHeight() >= this.field.prop('scrollHeight')) {
+        shouldScroll = true;
+    }
+
     // Patch the msg
     var pos = msg.indexOf('</font>');
     if(pos != -1) {
@@ -1481,7 +1500,9 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
     }
 
     // Scroll to the bottom:
-    this.field.scrollTop(this.field.prop("scrollHeight"));
+    if(shouldScroll) {
+        this.field.scrollTop(this.field.prop('scrollHeight'));
+    }
 }
 
 // Adds a line break
