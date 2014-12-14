@@ -2,6 +2,8 @@
     Client
 */
 
+var websiteTitle = 'Omegle';
+
 // Default settings
 var omegleSettings = omegleSettings || {
     defaultTopics: 'noMultiRP,rp,roleplay',
@@ -23,6 +25,9 @@ var defaultTopics = omegleSettings.defaultTopics;
 // Default message to auto send
 //var defaultAutoMessage = 'Hi! You\'re talking to multiple people! Type /commands for a list of commands. Any messages that start with a slash will not be sent to other users.';
 var defaultAutoMessage = omegleSettings.defaultMessage;
+
+// Is the window focused?
+var windowFocused = true;
 
 function painMap() {
     /*
@@ -304,6 +309,9 @@ function painMap() {
                 // Pass to our streamer
                 document.getElementById("flash"+p.painID).gotStrangerPeerID(peerID);
             }
+
+            // Handle notifications
+            pMap.notifications();
         }
     });
 
@@ -353,6 +361,9 @@ function painMap() {
     pMap.socket.on('omegleStrangerDisconnected', function(client_id) {
         // Do it
         pMap.doDisconnect(client_id);
+
+        // Handle notifications
+        pMap.notifications();
     });
 
     // Spy disconected
@@ -371,6 +382,9 @@ function painMap() {
 
             // Add the message
             p.addTextLine('<font color="red">Stranger:</font> '+msg, msg, 'Stranger');
+
+            // Manage notifications
+            pMap.notifications();
 
             // Check for commands
             //if(processCommands(con, msg)) return;
@@ -470,6 +484,47 @@ function painMap() {
 
     // Update the times
     this.updateTimes();
+}
+
+// Manages notifications
+painMap.prototype.notifications = function() {
+    // Check which sttae we are in
+    if(!windowFocused) {
+        // Stop many updates
+        if(this.cantUpdate) return;
+
+        // stop more updates
+        this.cantUpdate = true;
+
+        // Invert the focus counter
+        this.focus1 = !this.focus1;
+
+        // Build the seperator
+        var sep;
+        if(this.focus1) {
+            sep = '‾‾‾‾';
+            $("#favicon").attr("href","images/altfavicon.png");
+        } else {
+            sep = '____';
+            $("#favicon").attr("href","images/favicon.png");
+        }
+
+        // Change the title
+        document.title = sep + websiteTitle + sep;
+
+        // Queue the next update
+        var pMap = this;
+        setTimeout(function() {
+            // Allow updates
+            pMap.cantUpdate = false;
+
+            // Run the update
+            pMap.notifications();
+        }, 200);
+    } else {
+        document.title = websiteTitle;
+        $("#favicon").attr("href","images/favicon.png");
+    }
 }
 
 // We got a new peerID
@@ -1653,4 +1708,19 @@ $(document).ready(function(){
             return false;
         }
     }
+
+    // Manage the window focus
+    $(window).focus(function() {
+        // Gained focus
+        windowFocused = true;
+
+        // Reset website title
+        mainPainMap.notifications();
+    }).blur(function() {
+        // Lost Focus
+        windowFocused = false;
+    });
+
+    // Set the website title
+    document.title = websiteTitle;
 });
