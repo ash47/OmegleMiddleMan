@@ -1462,6 +1462,9 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
         pre = tbl.first();
     }
 
+    // Add the time
+    pre.attr('title', niceTime());
+
     // Check if there is a raw container
     if(raw) {
         var thisPain = this;
@@ -1681,6 +1684,27 @@ var mainPainMap;
 function setPeerID(painID, newPeerID) {
     // Pass the event
     mainPainMap.setPeerID(painID, newPeerID);
+}
+
+// Returns the currnt time, formatted nicely
+function niceTime() {
+    var months = {
+        0: 'January',
+        1: 'Febuary',
+        2: 'March',
+        3: 'April',
+        4: 'May',
+        5: 'June',
+        6: 'July',
+        7: 'August',
+        8: 'September',
+        9: 'October',
+        10: 'November',
+        11: 'December',
+    }
+
+    var d = new Date();
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getHours() + ':' + d.getMinutes();
 }
 
 $(document).ready(function(){
