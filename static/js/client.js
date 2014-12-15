@@ -262,9 +262,6 @@ function painMap() {
                 // Auto send message
                 p.sendAutoMessage(client_id, 500);
 
-                // Auto disconnect
-                p.autoDisconnect(client_id, 5000);
-
                 // We have found a match
                 found = true;
                 break;
@@ -303,6 +300,9 @@ function painMap() {
 
             // Auto send message
             p.sendAutoMessage(client_id, 1500);
+
+            // Auto disconnect
+            p.autoDisconnect(client_id, 5000);
 
             // Store their name
             p.nameField.val('Stranger '+pMap.totalConnections);
@@ -1328,7 +1328,7 @@ pain.prototype.autoDisconnect = function(client_id, delay) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id) {
+            if(p.client_id == client_id && !p.hasTyped) {
                 // Log it
                 p.addTextLine('Slow responder, or bot, dropping...');
 
