@@ -262,6 +262,9 @@ function painMap() {
                 // Auto send message
                 p.sendAutoMessage(client_id, 500);
 
+                // Auto disconnect
+                p.autoDisconnect(client_id, 5000);
+
                 // We have found a match
                 found = true;
                 break;
@@ -312,6 +315,9 @@ function painMap() {
 
             // Handle notifications
             pMap.notifications();
+
+            // This person hasn't typed yet
+            p.hasTyped = false;
         }
     });
 
@@ -385,6 +391,13 @@ function painMap() {
 
             // Manage notifications
             pMap.notifications();
+
+            // Check for auto disconnect
+            if(!p.hasTyped && p.ignoreBots.is(':checked')) {
+                p.addTextLine('Ignoring bot or phone user.');
+                pMap.doDisconnect(client_id);
+                return;
+            }
 
             // Check for commands
             //if(processCommands(con, msg)) return;
@@ -997,6 +1010,11 @@ pain.prototype.setup = function(socket) {
     this.autoBroadcast = $('<input id="autoBroadcast'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
     this.con.append(this.autoBroadcast);
 
+    // Ignore Bots
+    this.con.append($('<label for="ignoreBots'+this.painID+'">').text('Ignore Bots:'));
+    this.ignoreBots = $('<input id="ignoreBots'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
+    this.con.append(this.ignoreBots);
+
     // Video Options
     this.con.append($('<label for="video'+this.painID+'">').text('Video:'));
     this.video = $('<input id="video'+this.painID+'">').attr('type', 'checkbox').change(function() {
@@ -1300,6 +1318,28 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
     }
 }
 
+// Auto disconnects after the given delay, if the stranger hasn't started typing
+pain.prototype.autoDisconnect = function(client_id, delay) {
+    // Grab a reference to self
+    var p = this;
+
+    // Should we auto disconnect?
+    if(p.ignoreBots.is(':checked')) {
+        // Give a short delay before sending the message
+        setTimeout(function() {
+            // Check if the same client is connected
+            if(p.client_id == client_id) {
+                // Log it
+                p.addTextLine('Slow responder, or bot, dropping...');
+
+                // Disconnect
+                p.painMap.doDisconnect(client_id);
+                return;
+            }
+        }, delay);
+    }
+}
+
 // Generates a new randid
 pain.prototype.newRandid = function() {
     // Should we notify the user
@@ -1363,6 +1403,9 @@ pain.prototype.updateTalking = function(talking) {
         this.input.css({
             border: '4px solid #000'
         });
+
+        // Mark this window as a "real person"
+        this.hasTyped = true;
     } else {
         // They are no longer talking
         this.input.css({
