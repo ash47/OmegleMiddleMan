@@ -1440,7 +1440,10 @@ pain.prototype.sendMessage = function(msg) {
     this.stopTyping();
 
     // No need to confirm anymore
-    this.confirmDisconnect = false;
+    if(this.connected) {
+        this.updateButton('Disconnect');
+        this.confirmDisconnect = false;
+    }
 }
 
 // Broadcasts a message to everyone this controller is set to broadcast to
