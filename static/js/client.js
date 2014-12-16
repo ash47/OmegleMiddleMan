@@ -557,6 +557,10 @@ painMap.prototype.setPeerID = function(args) {
             p.micSelector.append($('<option/>').html(args.mics[i]));
         }
 
+        // Set default stuff
+        document.getElementById("flash"+args.painID).setCameraName('0');
+        document.getElementById("flash"+args.painID).setMicID('0');
+
         // Show them
         p.camSelector.show();
         p.micSelector.show();
@@ -891,7 +895,8 @@ pain.prototype.setup = function(socket) {
     var flashCon = $('<div class="flashCon">').hide();
     td.append(flashCon);
 
-    this.flash = $('<object type="application/x-shockwave-flash" data="flash/webcams.swf" width="320" height="240" id="flash'+this.painID+'">');
+    this.flash = $('<object type="application/x-shockwave-flash" data="flash/webcams.swf" width="400" height="240" id="flash'+this.painID+'">');
+    this.flash.html('<param name="wmode" value="transparent">');
     flashCon.append(this.flash);
 
     // Grab a reference to the pain
@@ -1036,13 +1041,13 @@ pain.prototype.setup = function(socket) {
     this.camSelector = $('<select/>').hide();;
     this.con.append(this.camSelector);
     this.camSelector.change(function() {
-        document.getElementById("flash"+painID).setCameraName($(this).val());
+        document.getElementById("flash"+painID).setCameraName($(this).find(":selected").index().toString());
     });
 
     this.micSelector = $('<select/>').hide();;
     this.con.append(this.micSelector);
     this.micSelector.change(function() {
-        document.getElementById("flash"+painID).setCameraName($(this).find(":selected").index());
+        document.getElementById("flash"+painID).setMicID($(this).find(":selected").index());
     });
 
     this.con.append($('<br>'));

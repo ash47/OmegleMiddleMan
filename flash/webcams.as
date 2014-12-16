@@ -14,6 +14,12 @@
 		// The container for our video
 		private var videoContainer:MovieClip;
 
+        // The container for us
+        private var selfContainer:MovieClip;
+
+        // The local stream
+        private var localVideo:Video;
+
 		// Our network connection
 		private var netConnection:NetConnection;
 
@@ -46,6 +52,22 @@
 			// Craete the video container
 			videoContainer = new MovieClip();
 			addChild(videoContainer);
+
+            // Create the self container
+            selfContainer = new MovieClip();
+            addChild(selfContainer);
+
+            // Scale of your webcam
+            var sc:Number = (400-320)/320;
+
+            selfContainer.scaleX = sc;
+            selfContainer.scaleY = sc;
+            selfContainer.x = 320;
+            selfContainer.y = 240 - (240*sc);
+
+            // Craete local stream
+            localVideo = new Video();
+            selfContainer.addChild(localVideo);
 
             // Hook the stream
             ExternalInterface.addCallback("setPainID", this.setPainID);
@@ -124,6 +146,9 @@
          	if(this.sendStream) {
                this.sendStream.attachCamera(this.camera);
             }
+
+            // Attach to local stream
+            localVideo.attachCamera(this.camera);
 		}
 
 		private function micChanged():void {
