@@ -142,7 +142,7 @@
 			this.camera = Camera.getCamera(this.cameraName);
 
 			if(this.camera) {
-            	this.camera.setMode(320,240,15);
+            	this.camera.setMode(320,240,30);
             	this.camera.setQuality(0,91);
         	}
 
