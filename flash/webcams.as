@@ -135,6 +135,9 @@
 		}
 
 		private function cameraChanged():void {
+            // Ensure they have cams
+            if(Camera.names.length <= 0) return;
+
 			// Grab the objects
 			this.camera = Camera.getCamera(this.cameraName);
 
@@ -152,6 +155,9 @@
 		}
 
 		private function micChanged():void {
+            // Ensure they have mics
+            if(Microphone.names.length <= 0) return;
+
 			// Grab the objects
          	this.microphone = Microphone.getMicrophone(this.micID);
 
