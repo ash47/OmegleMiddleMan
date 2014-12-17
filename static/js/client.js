@@ -302,7 +302,7 @@ function painMap() {
             p.sendAutoMessage(client_id, 1500);
 
             // Auto disconnect
-            p.autoDisconnect(client_id, 5000);
+            p.autoDisconnect(client_id, 10000);
 
             // Store their name
             p.nameField.val('Stranger '+pMap.totalConnections);
