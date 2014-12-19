@@ -30,10 +30,16 @@ OmegleMiddleMan
  - By default, it will send `hi`
 
 ### Broadcasting into other windows
+ - To enable this, you need to set `Auto Broadcast` to on.
  - At the bottom of the window are two fields `B` and `A`, `B` is short for Broadcast, `A` is short for Add Name.
  - If you tick a B box, it will broadcast into all the windows you tick, if you tick the green box, it will send back what ever the user types, to themselves
  - If you have Add Name ticked as well, it will prepend the name field to all messages
  - The order of the boxes is from left to right, the green boxes simply help you to see which window is which
+
+###Ignoring Bots###
+ - The ignore bots options will attempt to ignore bots and phone users.
+ - It will auto disconnect if they haven't started typing within 10 seconds
+ - It will also disconnect if they send a message without typing first (aka, common bot behavior)
 
 ###Adding preferences###
  - Navigate to `static/js` and copy the `settings_example.js` and call it `settings.js`
@@ -50,6 +56,9 @@ OmegleMiddleMan
 
 ###Stopping your bot from connecting to itself###
  - Add `noMultiRP` as an interest, If the bot finds someone with this interest, it will auto disconenct and move on
+
+###Limited Search###
+ - By default, it will only try to build one omegle connection at a time. If you want to build as many connections as possible at a time, turn `limited searching` off at the top.
 
 ###Fix Searching###
  - It's possible your client may sit on `Creating a connection` forever, if this happens, just hit the `Fix Searching` button
