@@ -567,6 +567,11 @@ painMap.prototype.setPeerID = function(args) {
     }
 }
 
+// Limits searching or not
+painMap.prototype.limitSearching = function(limited) {
+    this.limitedSearching = limited;
+}
+
 painMap.prototype.updateWidth = function() {
     // Update pain width
     var mainCon = $('#mainCon');
@@ -1271,6 +1276,11 @@ pain.prototype.createConnection = function() {
         params.camera = "USB 2.0 Web Camera";
     }
 
+    // Check if we should limit the connection or not
+    if(!this.painMap.limitedSearching) {
+        params.forceSearch = true;
+    }
+
     // Send the request
     this.socket.emit('newOmegle', params);
 
@@ -1775,13 +1785,23 @@ function niceTime() {
         11: 'December',
     }
 
+    // Grab teh current time
     var d = new Date();
-    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getHours() + ':' + d.getMinutes();
+
+    // Grab the minutes, formatted correctly
+    var minutes = d.getMinutes();
+    if(minutes < 10) {
+        minutes = '0' + minutes;
+    }
+
+    // Format the time nicely
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getHours() + ':' + minutes;
 }
 
 $(document).ready(function(){
     // Create the pain manager
     mainPainMap = new painMap();
+    mainPainMap.limitSearching(true);
 
     // Hook the new window buttons
     $('#newOmegleWindow').click(function() {
@@ -1792,6 +1812,11 @@ $(document).ready(function(){
     $('#newCleverBot').click(function() {
         // Setup a new pain
         mainPainMap.setupCleverBotPain();
+    });
+
+    $('#limitSearching').click(function() {
+        // Toggle the limited searchingness
+        mainPainMap.limitSearching($(this).is(':checked'));
     });
 
     // Stop accidental navigation away

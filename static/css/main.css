@@ -29,6 +29,11 @@ li {
     border-bottom:1px solid #000;
 }
 
+#windowManager input[type=checkbox] {
+    position: fixed;
+    top: 6px;
+}
+
 .omegleContainer {
     width: 400px;
     float:left;

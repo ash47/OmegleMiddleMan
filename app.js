@@ -382,8 +382,20 @@ io.on('connection', function(socket) {
 
     // Client is asking for a new omegle client
     socket.on('newOmegle', function(args){
-        // Setup a new connection
-        setupNewConnection(args);
+        // Check if we should force it or not
+        if(args.forceSearch) {
+            // Check if we are already building
+            if(buildingConnection) {
+                // Force build
+                makeConnection(args, false);
+            } else {
+                // Setup a new connection
+                setupNewConnection(args);
+            }
+        } else {
+            // Setup a new connection
+            setupNewConnection(args);
+        }
     });
 
     // Reconnects a client
