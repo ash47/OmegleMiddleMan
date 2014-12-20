@@ -10,6 +10,7 @@ var httpServer = http.Server(app);
 var io = require('socket.io')(httpServer);
 
 var Cleverbot = require('./cleverbot.js');
+var Sham = require('./shamchat.js').Sham;
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname+'/static/index.htm');
@@ -434,3 +435,14 @@ var omeglePortNumber = 3000;
 httpServer.listen(omeglePortNumber, function() {
     console.log('listening on *:'+omeglePortNumber);
 });
+
+
+/*var test = new Sham();
+test.start(function(err) {
+    console.log(err);
+});
+
+test.on('newid', function(client_id) {
+    console.log('Got a newID: ' + client_id);
+});
+*/

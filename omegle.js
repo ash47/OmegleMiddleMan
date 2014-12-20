@@ -26,7 +26,7 @@ function getTimeStamp() {
 }
 
 function Omegle(args) {
-    // Ensure we have an args array
+    // Ensure we have an args object
     if(args == null) args = {};
 
     // Do we have a client id?
@@ -104,7 +104,7 @@ util.inherits(Omegle, EventEmitter);
 Omegle.prototype.errorHandler = function(callback) {
     // Store it
     this.errorCallback = callback;
-}
+};
 
 Omegle.prototype.requestGet = function(path, callback) {
     return this.requestFull('GET', path, false, true, callback);
@@ -195,7 +195,7 @@ Omegle.prototype.reconnect = function(callback) {
 
     // Start the events loop again
     this.eventsLoop();
-}
+};
 
 // Connects
 Omegle.prototype.start = function(callback) {
@@ -222,6 +222,7 @@ Omegle.prototype.start = function(callback) {
         if (res.statusCode !== 200) {
             if (typeof callback === "function") {
                 callback(res.statusCode);
+                return;
             }
         }
 

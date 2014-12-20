@@ -6,6 +6,7 @@
   "dependencies": {
 	"qs": "*",
     "express": "*",
-    "socket.io": "*"
+    "socket.io": "*",
+    "faye": "*"
   }
 }
