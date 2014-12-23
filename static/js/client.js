@@ -302,7 +302,7 @@ function painMap() {
             p.sendAutoMessage(client_id, 1500);
 
             // Auto disconnect
-            p.autoDisconnect(client_id, 10000);
+            p.autoDisconnect(client_id, 10000, 30000);
 
             // Store their name
             p.nameField.val('Stranger '+pMap.totalConnections);
@@ -318,6 +318,7 @@ function painMap() {
 
             // This person hasn't typed yet
             p.hasTyped = false;
+            p.hasSpoken = false;
         }
     });
 
@@ -383,6 +384,9 @@ function painMap() {
         var p = pMap.findByID(client_id);
 
         if(p) {
+            // This person has spoken
+            p.hasSpoken = true;
+
             // They are no longer typing
             p.updateTalking(false);
 
@@ -1334,7 +1338,7 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
 }
 
 // Auto disconnects after the given delay, if the stranger hasn't started typing
-pain.prototype.autoDisconnect = function(client_id, delay) {
+pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
     // Grab a reference to self
     var p = this;
 
@@ -1343,7 +1347,7 @@ pain.prototype.autoDisconnect = function(client_id, delay) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id && !p.hasTyped) {
+            if(p.client_id == client_id && !p.hasTyped && p.ignoreBots.is(':checked')) {
                 // Log it
                 p.addTextLine('Slow responder, or bot, dropping...');
 
@@ -1352,6 +1356,19 @@ pain.prototype.autoDisconnect = function(client_id, delay) {
                 return;
             }
         }, delay);
+
+        // Give a short delay before sending the message
+        setTimeout(function() {
+            // Check if the same client is connected
+            if(p.client_id == client_id && !p.hasSpoken && p.ignoreBots.is(':checked')) {
+                // Log it
+                p.addTextLine('Slow responder, or bot, dropping...');
+
+                // Disconnect
+                p.painMap.doDisconnect(client_id);
+                return;
+            }
+        }, delay2);
     }
 }
 
