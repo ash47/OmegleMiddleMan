@@ -110,15 +110,15 @@ Omegle.prototype.errorHandler = function(callback) {
 };
 
 Omegle.prototype.requestGet = function(path, callback) {
-    return this.requestFull('GET', path, false, true, callback);
+    this.requestFull('GET', path, false, true, callback);
 };
 
 Omegle.prototype.requestPost = function(path, data, callback) {
-    return this.requestFull('POST', path, data, true, callback);
+    this.requestFull('POST', path, data, true, callback);
 };
 
 Omegle.prototype.requestKA = function(path, data, callback) {
-    return this.requestFull('POST', path, data, true, callback);
+    this.requestFull('POST', path, data, true, callback);
 };
 
 Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback) {
@@ -274,7 +274,7 @@ Omegle.prototype.start = function(callback) {
 Omegle.prototype.recaptcha = function(challenge, answer) {
     var _this = this;
 
-    return this.requestPost('/recaptcha', {
+    this.requestPost('/recaptcha', {
         id: _this.client_id,
         challenge: challenge,
         response: answer
@@ -282,19 +282,18 @@ Omegle.prototype.recaptcha = function(challenge, answer) {
 };
 
 Omegle.prototype.send = function(msg, callback) {
-    return this.requestPost('/send', {
+    this.requestPost('/send', {
         msg: msg,
         id: this.client_id
     }, function(res) {
-        return callbackErr(callback, res);
+        callbackErr(callback, res);
     });
 };
 
 Omegle.prototype.getStatus = function(callback) {
-    return this.requestGet('/status?nocache=' + Math.random(), function(res) {
-        return getAllData(res, function(data) {
+    this.requestGet('/status?nocache=' + Math.random(), function(res) {
+        getAllData(res, function(data) {
             callback(JSON.parse(data));
-            return data;
         });
     });
 };
@@ -406,6 +405,9 @@ function mobileValue(mobileParam) {
         serverList = status.servers;
         console.log('Found the following servers: ' + serverList.join(', '));
     });
+
+    om.host = 'wawadmin.omegle.com';
+    om.requestGet('/redir/hometest?track=mon-videon-nmnf-y', function(res) {});
 })();
 
 // Define exports
