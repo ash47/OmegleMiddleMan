@@ -110,6 +110,7 @@ Omegle.prototype.errorHandler = function(callback) {
 };
 
 Omegle.prototype.requestGet = function(path, callback) {
+    console.log(this.host+path);
     this.requestFull('GET', path, false, true, callback);
 };
 
@@ -405,9 +406,6 @@ function mobileValue(mobileParam) {
         serverList = status.servers;
         console.log('Found the following servers: ' + serverList.join(', '));
     });
-
-    om.host = 'wawadmin.omegle.com';
-    om.requestGet('/redir/hometest?track=mon-videon-nmnf-y', function(res) {});
 })();
 
 // Define exports
