@@ -110,7 +110,6 @@ Omegle.prototype.errorHandler = function(callback) {
 };
 
 Omegle.prototype.requestGet = function(path, callback) {
-    console.log(this.host+path);
     this.requestFull('GET', path, false, true, callback);
 };
 
