@@ -256,7 +256,7 @@ Omegle.prototype.start = function(callback) {
                     console.log('d');
 
                     // Push Events
-                    _this.eventReceived(JSON.stringify(info.events));
+                    _this.eventReceived(JSON.stringify(info.events || {}));
                 } catch(e) {
                     // Failure :(
                     callback('Failed to parse JSON: '+e+'\n\n' + String(data));
