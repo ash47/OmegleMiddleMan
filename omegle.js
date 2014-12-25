@@ -9,6 +9,9 @@ var util = require('util');
 
 var version = '1.0';
 
+// Server list
+var serverList = [];
+
 // Gets a time stamp
 function getTimeStamp() {
     var date = new Date();
@@ -36,7 +39,7 @@ function Omegle(args) {
 
     // Store data
     this.userAgent = args.userAgent || "omegle node.js npm package/" + version;
-    this.host = args.host || 'front8.omegle.com';
+    this.host = args.host || serverList[0] || 'front1.omegle.com';
     this.language = args.language || 'en';
     this.mobile = args.mobile || false;
 
@@ -288,12 +291,12 @@ Omegle.prototype.send = function(msg, callback) {
 };
 
 Omegle.prototype.getStatus = function(callback) {
-    return this.requestGet('/status?nocache=' + Math.random(), __bind(function(res) {
-        return getAllData(res, __bind(function(data) {
+    return this.requestGet('/status?nocache=' + Math.random(), function(res) {
+        return getAllData(res, function(data) {
             callback(JSON.parse(data));
             return data;
-        }, this));
-    }, this));
+        });
+    });
 };
 
 Omegle.prototype.postEvent = function(event, callback) {
@@ -394,6 +397,16 @@ function mobileValue(mobileParam) {
         return 0;
     }
 };
+
+// Update servers
+(function() {
+    var om = new Omegle();
+
+    om.getStatus(function(status) {
+        serverList = status.servers;
+        console.log('Found the following servers: ' + serverList.join(', '));
+    });
+})();
 
 // Define exports
 exports.Omegle = Omegle;
