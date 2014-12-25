@@ -231,19 +231,29 @@ Omegle.prototype.start = function(callback) {
             // Make sure we got some data
             if(data != null) {
                 try {
+                    console.log('a');
+
                     // Parse the info
                     var info = JSON.parse(data);
 
+                    console.log('b');
+
                     // Store the clientID
                     _this.client_id = info.clientID;
+
+                    console.log('c');
 
                     // Run the callback
                     if (typeof callback === "function") {
                         callback();
                     }
 
+                    console.log('d');
+
                     // Emit the newid event
                     _this.emit('newid', _this.client_id);
+
+                    console.log('d');
 
                     // Push Events
                     _this.eventReceived(JSON.stringify(info.events));
