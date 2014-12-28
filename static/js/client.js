@@ -1585,10 +1585,17 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
 
 // Adds a line break
 pain.prototype.addLineBreak = function() {
+    var shouldScroll = false;
+    if(this.field.scrollTop() + this.field.innerHeight() >= this.field.prop('scrollHeight')) {
+        shouldScroll = true;
+    }
+
     this.field.append($('<hr>'));
 
     // Scroll to the bottom:
-    this.field.scrollTop(this.field.prop("scrollHeight"));
+    if(shouldScroll) {
+        this.field.scrollTop(this.field.prop("scrollHeight"));
+    }
 }
 
 // Disconnects if we are connected
