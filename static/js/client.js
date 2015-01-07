@@ -330,11 +330,8 @@ function painMap() {
             // Loop over the likes
             for(var key in commonLikes) {
                 if(commonLikes[key].toLowerCase() == 'nomultirp') {
-                    // Log it
-                    p.addTextLine('NoMultiRP detected, dropping client...');
-
                     // Disconnect
-                    pMap.doDisconnect(client_id);
+                    pMap.doDisconnect(client_id, null, 'Disconnected: NoMultiRP detected.');
                     return;
                 }
             }
@@ -398,8 +395,11 @@ function painMap() {
 
             // Check for auto disconnect
             if(!p.hasTyped && p.ignoreBots.is(':checked')) {
-                p.addTextLine('Ignoring bot or phone user.');
-                pMap.doDisconnect(client_id);
+                setTimeout(function() {
+                    if(p.client_id == client_id) {
+                        pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
+                    }
+                }, 1000);
                 return;
             }
 
@@ -793,7 +793,7 @@ painMap.prototype.findSlotByPainID = function(painID) {
 }
 
 // Disconnects someone
-painMap.prototype.doDisconnect = function(client_id, name) {
+painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
     // Find and remove the pain
     var p = this.findByID(client_id);
     if(!p) return;
@@ -808,7 +808,11 @@ painMap.prototype.doDisconnect = function(client_id, name) {
     p.printTimeConnected();
 
     // Add message to chat
-    p.addTextLine(name+' has disconnected!');
+    if(altMessage) {
+        p.addTextLine(altMessage);
+    } else {
+        p.addTextLine(name+' has disconnected!');
+    }
     p.addLineBreak();
 
     // Reset border color
@@ -1348,11 +1352,8 @@ pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
         setTimeout(function() {
             // Check if the same client is connected
             if(p.client_id == client_id && !p.hasTyped && p.ignoreBots.is(':checked')) {
-                // Log it
-                p.addTextLine('Slow responder, or bot, dropping...');
-
                 // Disconnect
-                p.painMap.doDisconnect(client_id);
+                p.painMap.doDisconnect(client_id, null, 'Disconnected: Slow responder or bot.');
                 return;
             }
         }, delay);
@@ -1361,11 +1362,8 @@ pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
         setTimeout(function() {
             // Check if the same client is connected
             if(p.client_id == client_id && !p.hasSpoken && p.ignoreBots.is(':checked')) {
-                // Log it
-                p.addTextLine('Slow responder, or bot, dropping...');
-
                 // Disconnect
-                p.painMap.doDisconnect(client_id);
+                p.painMap.doDisconnect(client_id, null, 'Disconnected: Slow responder or bot.');
                 return;
             }
         }, delay2);
