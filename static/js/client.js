@@ -395,6 +395,8 @@ function painMap() {
 
             // Check for auto disconnect
             if(!p.hasTyped && p.ignoreBots.is(':checked')) {
+                p.dontAutoSend = true;
+
                 setTimeout(function() {
                     if(p.client_id == client_id) {
                         pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
@@ -1228,6 +1230,9 @@ pain.prototype.createConnection = function() {
     // We are now searching
     this.searching = true;
 
+    // Allow auto messages
+    this.dontAutoSend = false;
+
     // Unmoderated option
     var group;
     if(!this.moderated.is(':checked')) {
@@ -1330,7 +1335,7 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id) {
+            if(p.client_id == client_id && !p.dontAutoSend) {
                 // Send the message
                 p.sendMessage(txt);
 
