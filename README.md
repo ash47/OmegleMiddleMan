@@ -67,5 +67,8 @@ OmegleMiddleMan
  - It's possible your bot will be required to answer capchas due to spam
  - When the capcha image appears, simply enter the answer into the chat box, and hit send / press enter, if you are correct, it will find you a new stranger, if you fail, you will get a new capcha
 
+###Missing Features?###
+ - As far as I am aware, the ONLY missing API is the ability to save chats, just copy and paste from the chat window, or screenshot it. It requires a lot of research for something that is kind of useless.
+
 ###Credits###
  - Original omegle client was taken from [here](https://github.com/CRogers/omegle), it no longer works as the protocol has mostly changed, and it has many bugs, I would do a pull request, except their code is written in coffee script, and I used javascript
