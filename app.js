@@ -1,4 +1,5 @@
 var Omegle = require('./omegle.js').Omegle;
+var onOmegleReady = require('./omegle.js').onReady;
 var express = require('express');
 var app = express();
 
@@ -433,9 +434,15 @@ io.on('connection', function(socket) {
 
 var omeglePortNumber = 3000;
 httpServer.listen(omeglePortNumber, function() {
-    console.log('listening on *:'+omeglePortNumber);
+    console.log('Listening on port ' + omeglePortNumber + ', searching for omegle servers...');
 });
 
+// Run callback for when omegle is ready
+Omegle.onReady(function(serverList) {
+    // Print out the server list
+    console.log('Found the following servers: ' + serverList.join(', ') + '\n\n' + Omegle.getSelectedServer() + ' was selected!\n');
+    console.log('Visit 127.0.0.1:' + omeglePortNumber + ' in your web browser to view the GUI.');
+});
 
 /*var test = new Sham();
 test.start(function(err) {

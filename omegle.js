@@ -12,6 +12,9 @@ var version = '1.0';
 // Server list
 var serverList = [];
 
+// Callback(s) to run when we are ready
+var onReadyCallbacks = [];
+
 // Gets a time stamp
 function getTimeStamp() {
     var date = new Date();
@@ -39,7 +42,7 @@ function Omegle(args) {
 
     // Store data
     this.userAgent = args.userAgent || "omegle node.js npm package/" + version;
-    this.host = args.host || serverList[0] || 'front1.omegle.com';
+    this.host = args.host || Omegle.getSelectedServer();
     this.language = args.language || 'en';
     this.mobile = args.mobile || false;
 
@@ -102,6 +105,21 @@ function Omegle(args) {
 
 // Add event emitter methods
 util.inherits(Omegle, EventEmitter);
+
+// Selects a server for us
+Omegle.getSelectedServer = function() {
+    return serverList[0] || 'front1.omegle.com';
+}
+
+// Function to allow callbacks for when the client is ready
+Omegle.onReady = function(callback) {
+    // We will assume that there WILL be _some_ servers if the client is ready
+    if(serverList.length > 0) {
+        callback(serverList);
+    } else {
+        onReadyCallbacks.push(callback);
+    }
+}
 
 // Store error handler
 Omegle.prototype.errorHandler = function(callback) {
@@ -402,8 +420,21 @@ function mobileValue(mobileParam) {
     var om = new Omegle();
 
     om.getStatus(function(status) {
+        // Store the server list
         serverList = status.servers;
-        console.log('Found the following servers: ' + serverList.join(', '));
+
+        // Ensure at least one server was found
+        if(serverList.length == 0) {
+            console.log('Error: No omegle servers were found!');
+        }
+
+        // Run the callbacks
+        for(var i=0; i<onReadyCallbacks.length; ++i) {
+            onReadyCallbacks[i](serverList);
+        }
+
+        // Cleanup
+        delete om;
     });
 })();
 
