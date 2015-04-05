@@ -93,27 +93,24 @@ li {
     -ms-user-select: none;
     user-select: none;
 
+    cursor: pointer;
+    cursor: hand;
+
     float:right;
 
     border:1px solid #000;
-    background:#FFF;
+    background:#f54;
     padding:0px;
-    padding-left:6px;
-    padding-right:6px;
+    padding-left:7px;
+    padding-right:7px;
     padding-bottom:3px;
 
     margin-top: 10px;
     margin-bottom:-40px;
     margin-right:30px;
 
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    cursor: pointer;
-    cursor: hand;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
 }
 
 .omegleWindow {
