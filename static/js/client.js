@@ -845,7 +845,7 @@ painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
     }*/
 
     // Reset messages
-    this.resetCallbacks();
+    p.resetCallbacks();
 
     // New ID
     if(p.newID.is(':checked')) {
