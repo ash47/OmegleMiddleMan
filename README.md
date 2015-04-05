@@ -25,6 +25,13 @@ OmegleMiddleMan
  - **Video:** This will enable video mode
  - **Delayed:** If selected, a random delay will be added to cleverbot's response, this is so people don't think it's a bot
 
+###How do I know if my message was delivered?###
+ - The icon to the left of a message will highlight green when you send a message
+ - The highlight will be removed if it is successful
+ - The highlight will turn red if the message fails to be delivered
+ - You will likely also get an error message if something went wrong
+ - The client tends to continue trying to deliver, unless something goes horribly wrong
+
 ###Auto greeting people###
  - You can enter a message to auto send to people, or leave it blank if you don't want to send the message
  - By default, it will send `hi`
