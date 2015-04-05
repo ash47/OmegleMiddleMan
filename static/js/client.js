@@ -61,6 +61,9 @@ function painMap() {
 
             // Tell the client
             p.addTextLine('Lost connection to the server :(');
+
+            // Reset callbacks
+            p.resetCallbacks();
         }
     });
 
@@ -212,6 +215,18 @@ function painMap() {
 
                 // Begin searching again
                 p.createConnection();
+            }
+        }
+    });
+
+    // We got a callback
+    pMap.socket.on('omegleCallback', function(client_id, callbackNum, success) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            if(p.messageCallback[callbackNum]) {
+                p.messageCallback[callbackNum](success);
+                delete p.messageCallback[callbackNum];
             }
         }
     });
@@ -829,6 +844,9 @@ painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
         p.broadcastMessage(p.name+' has disconnected!');
     }*/
 
+    // Reset messages
+    this.resetCallbacks();
+
     // New ID
     if(p.newID.is(':checked')) {
         // Get a new randID
@@ -888,6 +906,12 @@ pain.prototype.setup = function(socket) {
 
     // Store the painID
     this.painID = ++totalPains;
+
+    // Store the messageID
+    this.messageID = 0;
+
+    // Store callbacks
+    this.resetCallbacks();
 
     // Generate a new random ID
     this.newRandid();
@@ -1105,11 +1129,11 @@ pain.prototype.setup = function(socket) {
 
             // Do we have a message?
             if(txt != '') {
-                // Send the message
-                pain.sendMessage(txt);
-
                 // Add it to our log
-                pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
+                var highlight = pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
+
+                // Send the message
+                pain.sendMessage(txt, highlight);
 
                 // Confirm the D/C
                 if(this.connected) {
@@ -1168,11 +1192,11 @@ pain.prototype.setup = function(socket) {
 
             // Do we have a message?
             if(txt != '') {
-                // Send the message
-                pain.sendMessage(txt);
-
                 // Add it to our log
-                pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
+                var highlight = pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
+
+                // Send the message
+                pain.sendMessage(txt, highlight);
 
                 // Confirm the D/C
                 if(this.connected) {
@@ -1188,6 +1212,20 @@ pain.prototype.setup = function(socket) {
 pain.prototype.cleanup = function() {
     // Ask the controller to clean us up
     this.painMap.cleanup(this.painID);
+}
+
+// Resets all callbacks
+pain.prototype.resetCallbacks = function() {
+    // Cleanup old callbacks
+    if(this.messageCallback) {
+        for(var key in this.messageCallback) {
+            // Message failed to send
+            this.messageCallback[key](false);
+        }
+    }
+
+    // Reset the callbacks
+    this.messageCallback = {};
 }
 
 // Hooks the buttons
@@ -1232,6 +1270,9 @@ pain.prototype.createConnection = function() {
 
     // Allow auto messages
     this.dontAutoSend = false;
+
+    // Reset message callbacks
+    this.resetCallbacks();
 
     // Unmoderated option
     var group;
@@ -1336,11 +1377,11 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
         setTimeout(function() {
             // Check if the same client is connected
             if(p.client_id == client_id && !p.dontAutoSend) {
-                // Send the message
-                p.sendMessage(txt);
-
                 // Add it to our log
-                p.addTextLine('<font color="blue">Auto:</font> '+txt, txt, 'Me');
+                var highlight = p.addTextLine('<font color="blue">Auto:</font> '+txt, txt, 'Me');
+
+                // Send the message
+                p.sendMessage(txt, highlight);
             }
         }, delay);
     }
@@ -1450,7 +1491,7 @@ pain.prototype.updateTalking = function(talking) {
 }
 
 // Sends a message to the given controller
-pain.prototype.sendMessage = function(msg) {
+pain.prototype.sendMessage = function(msg, highlight) {
     // Ensure we are connected
     if(this.captcha) {
         // Send captcha
@@ -1459,8 +1500,35 @@ pain.prototype.sendMessage = function(msg) {
         // No longer asking for a captcha
         this.captcha = false;
     } else if(this.connected) {
+        // Do highlighting
+        var myNum;
+        if(highlight) {
+            // Grab a new ID
+            myNum = ++this.messageID;
+
+            // Store callback
+            this.messageCallback[myNum] = function(success) {
+                if(success) {
+                    // Mark it as successful
+                    highlight.css({
+                        'background-color': ''
+                    });
+                } else {
+                    // Mark it as a failure
+                    highlight.css({
+                        'background-color': '#c0504d'
+                    });
+                }
+            }
+
+            // Mark it as sending
+            highlight.css({
+                'background-color': '#9bbb59'
+            });
+        }
+
         // Send the message
-        this.socket.emit('omegleSend', this.client_id, msg);
+        this.socket.emit('omegleSend', this.client_id, msg, myNum);
     }
 
     // This controller is no longer typing
@@ -1496,17 +1564,17 @@ pain.prototype.broadcastMessage = function(msg, override, nameOverride) {
                 if(tick.is(':checked')) {
                     // Add name?
                     if(tick2.is(':checked') && !nameOverride) {
-                        // Send the message
-                        p.sendMessage(this.getPrefix()+msg);
-
                         // Add it to our log
-                        p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+msg, msg, 'Broadcasted');
+                        var highlight = p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+msg, msg, 'Broadcasted');
+
+                        // Send the message
+                        p.sendMessage(this.getPrefix()+msg, highlight);
                     } else {
-                        // Send the message
-                        p.sendMessage(msg);
-
                         // Add it to our log
-                        p.addTextLine('<font color="blue">Broadcasted:</font> '+msg, msg, 'Broadcasted');
+                        var highlight = p.addTextLine('<font color="blue">Broadcasted:</font> '+msg, msg, 'Broadcasted');
+
+                        // Send the message
+                        p.sendMessage(msg, highlight);
                     }
                 }
             }
@@ -1544,6 +1612,9 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
         shouldScroll = true;
     }
 
+    // The return value
+    var ret;
+
     // Patch the msg
     var pos = msg.indexOf('</font>');
     if(pos != -1) {
@@ -1569,21 +1640,27 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
     if(raw) {
         var thisPain = this;
 
-        // Add the send button
-        pre.prepend($('<span class="easySend">').html('<b>&gt;</b>').click(function() {
+        // Crete the send button
+        ret = $('<span class="easySend">').html('<b>&gt;</b>').click(function() {
             // Decide how to send the message
             if(prefix == 'Me') {
                 thisPain.broadcastMessage(raw, true, true);
             } else {
                 thisPain.broadcastMessage(raw, true);
             }
-        }));
+        });
+
+        // Add the send button
+        pre.prepend(ret);
     }
 
     // Scroll to the bottom:
     if(shouldScroll) {
         this.field.scrollTop(this.field.prop('scrollHeight'));
     }
+
+    // Return it
+    return ret;
 }
 
 // Adds a line break
@@ -1614,6 +1691,9 @@ pain.prototype.disconnect = function() {
     this.searching = false;
     this.client_id = null;
     this.reconnecting = false;
+
+    // Cleanup callbacks
+    this.resetCallbacks();
 
     // Change text
     this.updateButton('New');

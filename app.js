@@ -326,7 +326,7 @@ io.on('connection', function(socket) {
     });
 
     // Client wants to send a message to a stranger
-    socket.on('omegleSend', function(client_id, msg) {
+    socket.on('omegleSend', function(client_id, msg, callbackNum) {
         var om = omegleClients[client_id];
 
         // Check if the client even exists
@@ -336,6 +336,18 @@ io.on('connection', function(socket) {
                 if (err) {
                     // Send to client
                     socket.emit('omegleError', om.args, 'Error sending: ' + err);
+
+                    // Send callback
+                    if(callbackNum) {
+                        // Failure callback
+                        socket.emit('omegleCallback', client_id, callbackNum, false);
+                    }
+                } else {
+                    // Send callback
+                    if(callbackNum) {
+                        // Success callback
+                        socket.emit('omegleCallback', client_id, callbackNum, true);
+                    }
                 }
             });
         }
