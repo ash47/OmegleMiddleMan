@@ -19,6 +19,10 @@ var omegleSettings = omegleSettings || {
     delayed: true
 };
 
+// The video server
+var omegleVideoServer = 'rtmfp://p2p.rtmfp.net';
+var omegleVideoServerPassword = '6fd539b64a3ca859d410f2f6-ac89c5a8742e';
+
 // Default topics
 var defaultTopics = omegleSettings.defaultTopics;
 
@@ -571,11 +575,15 @@ painMap.prototype.setPeerID = function(args) {
         p.mics = args.mics;
 
         for(var i=0; i<args.cameras.length; i++) {
-            p.camSelector.append($('<option/>').html(args.cameras[i]));
+            p.camSelector.append($('<option/>', {
+                text: args.cameras[i]
+            }));
         }
 
         for(var i=0; i<args.mics.length; i++) {
-            p.micSelector.append($('<option/>').html(args.mics[i]));
+            p.micSelector.append($('<option/>', {
+                text: args.mics[i]
+            }));
         }
 
         // Set default stuff
@@ -951,7 +959,7 @@ pain.prototype.setup = function(socket) {
         // Check if it exists yet
         if(flash.setPainID) {
             // Pass variables
-            flash.setPainID(painID);
+            flash.setPainID(painID, omegleVideoServer, omegleVideoServerPassword);
         } else {
             // Try again shortly
             setTimeout(initFlash, 100);

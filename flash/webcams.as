@@ -90,14 +90,17 @@
 			micChanged();
 		}
 
-		private function setPainID(newPainID):void {
+		private function setPainID(newPainID, videoServer, videoPassword):void {
 			// Store the painID
 			this.painID = newPainID;
 
 			// Create the connection
 			this.netConnection = new NetConnection();
             this.netConnection.addEventListener(NetStatusEvent.NET_STATUS,this.netConnectionHandler);
-            this.netConnection.connect(omegleServer);
+            this.netConnection.connect(videoServer || omegleServer, videoPassword);
+
+            // Log it
+            ExternalInterface.call("console.log", "Connecting to video server...");
 		}
 
 		private function stopChat():void {
@@ -162,7 +165,7 @@
          	this.microphone = Microphone.getMicrophone(this.micID);
 
          	if(this.microphone) {
-	            this.microphone.setSilenceLevel(5,1000);
+	            this.microphone.setSilenceLevel(0, 1000);
     	        this.microphone.setUseEchoSuppression(true);
         	    this.microphone.framesPerPacket = 1;
             	this.microphone.codec = SoundCodec.SPEEX;
@@ -174,8 +177,11 @@
 		}
 
 		private function netConnectionHandler(status:NetStatusEvent):void {
-			switch(status.info.code) {
+            switch(status.info.code) {
 				case "NetConnection.Connect.Success":
+                    // Log it
+                    ExternalInterface.call("console.log", "Connected successfully!");
+
 					// Tell our client our ID
          			ExternalInterface.call("setPeerID", {
          				painID: this.painID,
@@ -205,7 +211,7 @@
 				case "NetConnection.Connect.Failed":
 					this.netConnection = null;
 
-					trace("Failed to connect!");
+					ExternalInterface.call("console.log", "Failed to connect!");
 				break;
 
 				case "NetConnection.Connect.Closed":
@@ -216,8 +222,12 @@
 						this.receiveStream = null;
 					}
 
-					trace("Connection was closed!");
+					ExternalInterface.call("console.log", "Connection was closed!");
 				break;
+
+                default:
+                    ExternalInterface.call("console.log", "Unknown connection issue!");
+                break;
 			}
 		}
 	}
