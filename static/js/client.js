@@ -79,7 +79,7 @@ function painMap() {
             var p = pMap.pains[key];
 
             // Tell the client
-            p.addTextLine('Socket error: '+e.message);
+            p.addTextLine('Socket error: '+htmlEntities(e.message));
         }
     });
 
@@ -247,7 +247,7 @@ function painMap() {
                 // Found the right pain
 
                 // Log the problem
-                p.addTextLine('Error: '+err);
+                p.addTextLine('Error: '+htmlEntities(err));
             }
         }
     });
@@ -356,7 +356,7 @@ function painMap() {
             }
 
             // Display the likes
-            p.addTextLine('The stranger likes '+commonLikes.toString());
+            p.addTextLine('The stranger likes '+htmlEntities(commonLikes.toString()));
         }
     });
 
@@ -366,7 +366,7 @@ function painMap() {
 
         if(p) {
             // Display the college
-            p.addTextLine('Stranger\'s college: '+college);
+            p.addTextLine('Stranger\'s college: '+htmlEntities(college));
         }
     });
 
@@ -376,7 +376,7 @@ function painMap() {
 
         if(p) {
             // Display the college
-            p.addTextLine('<b>Question:</b> '+question);
+            p.addTextLine('<b>Question:</b> '+htmlEntities(question));
         }
     });
 
@@ -407,7 +407,7 @@ function painMap() {
             p.updateTalking(false);
 
             // Add the message
-            p.addTextLine('<font color="red">Stranger:</font> '+msg, msg, 'Stranger');
+            p.addTextLine('<font color="red">Stranger:</font> '+htmlEntities(msg), msg, 'Stranger');
 
             // Manage notifications
             pMap.notifications();
@@ -440,7 +440,7 @@ function painMap() {
             p.updateTalking(false);
 
             // Add the message
-            p.addTextLine('<font color="red">'+spy+':</font> '+msg, msg, 'Spy');
+            p.addTextLine('<font color="red">'+htmlEntities(spy)+':</font> '+htmlEntities(msg), msg, 'Spy');
 
             // Check for commands
             //if(processCommands(con, msg)) return;
@@ -467,7 +467,7 @@ function painMap() {
                 p.updateTalking(false);
 
                 // Add the message
-                p.addTextLine('<font color="red">Cleverbot:</font> '+msg, msg, 'Cleverbot');
+                p.addTextLine('<font color="red">Cleverbot:</font> '+htmlEntities(msg), msg, 'Cleverbot');
 
                 // Broadcast it
                 p.broadcastMessage(msg);
@@ -836,7 +836,7 @@ painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
     if(altMessage) {
         p.addTextLine(altMessage);
     } else {
-        p.addTextLine(name+' has disconnected!');
+        p.addTextLine(htmlEntities(name)+' has disconnected!');
     }
     p.addLineBreak();
 
@@ -1138,7 +1138,7 @@ pain.prototype.setup = function(socket) {
             // Do we have a message?
             if(txt != '') {
                 // Add it to our log
-                var highlight = pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
+                var highlight = pain.addTextLine('<font color="blue">You:</font> '+htmlEntities(txt), txt, 'Me');
 
                 // Send the message
                 pain.sendMessage(txt, highlight);
@@ -1201,7 +1201,7 @@ pain.prototype.setup = function(socket) {
             // Do we have a message?
             if(txt != '') {
                 // Add it to our log
-                var highlight = pain.addTextLine('<font color="blue">You:</font> '+txt, txt, 'Me');
+                var highlight = pain.addTextLine('<font color="blue">You:</font> '+htmlEntities(txt), txt, 'Me');
 
                 // Send the message
                 pain.sendMessage(txt, highlight);
@@ -1386,7 +1386,7 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
             // Check if the same client is connected
             if(p.client_id == client_id && !p.dontAutoSend) {
                 // Add it to our log
-                var highlight = p.addTextLine('<font color="blue">Auto:</font> '+txt, txt, 'Me');
+                var highlight = p.addTextLine('<font color="blue">Auto:</font> '+htmlEntities(txt), txt, 'Me');
 
                 // Send the message
                 p.sendMessage(txt, highlight);
@@ -1573,13 +1573,13 @@ pain.prototype.broadcastMessage = function(msg, override, nameOverride) {
                     // Add name?
                     if(tick2.is(':checked') && !nameOverride) {
                         // Add it to our log
-                        var highlight = p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+msg, msg, 'Broadcasted');
+                        var highlight = p.addTextLine('<font color="blue">Broadcasted:</font> '+this.getPrefix()+htmlEntities(msg), msg, 'Broadcasted');
 
                         // Send the message
                         p.sendMessage(this.getPrefix()+msg, highlight);
                     } else {
                         // Add it to our log
-                        var highlight = p.addTextLine('<font color="blue">Broadcasted:</font> '+msg, msg, 'Broadcasted');
+                        var highlight = p.addTextLine('<font color="blue">Broadcasted:</font> '+htmlEntities(msg), msg, 'Broadcasted');
 
                         // Send the message
                         p.sendMessage(msg, highlight);
@@ -1911,6 +1911,10 @@ function niceTime() {
 
     // Format the time nicely
     return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getHours() + ':' + minutes;
+}
+
+function htmlEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 $(document).ready(function(){
