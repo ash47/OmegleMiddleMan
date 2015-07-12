@@ -23,6 +23,7 @@ OmegleMiddleMan
  - **College:** This will search for college students, note: You need to setup your college settings, see the Adding prefereces section
  - **Any College:** If selected, it will search for people from any college, not jsut your own
  - **Video:** This will enable video mode
+  - Use the console command `setCameraSize(width, height, fps, quality)` to change the settings. The default is `setCameraSize(320, 240, 24, 91)`
  - **Delayed:** If selected, a random delay will be added to cleverbot's response, this is so people don't think it's a bot
 
 ###How do I know if my message was delivered?###

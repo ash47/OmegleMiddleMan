@@ -47,6 +47,12 @@
 	    // The ID of the mic
 	    private var micID:Number;
 
+        // Camera sizing
+        private var overrideWidth:Number = 320;
+        private var overrideHeight:Number = 240;
+        private var overrideFPS:Number = 24;
+        private var overrideQuality:Number = 91;
+
 		// Init webcam
 		public function webcams() {
 			// Craete the video container
@@ -74,6 +80,7 @@
             ExternalInterface.addCallback("gotStrangerPeerID", this.gotStrangerPeerID);
             ExternalInterface.addCallback("setCameraName", this.setCameraName);
             ExternalInterface.addCallback("setMicID", this.setMicID);
+            ExternalInterface.addCallback("setCameraSize", this.exteranlCameraSize);
 		}
 
 		private function setCameraName(cam:String):void {
@@ -82,6 +89,17 @@
 			// The camera changed
 			cameraChanged();
 		}
+
+        private function exteranlCameraSize(width:Number = 320, height:Number = 240, fps:Number = 24, quality:Number = 91):void {
+            // Store vars
+            this.overrideWidth = width;
+            this.overrideHeight = height;
+            this.overrideFPS = fps;
+            this.overrideQuality = quality;
+
+            // Do the change
+            cameraChanged();
+        }
 
 		private function setMicID(mic:Number):void {
 			this.micID = mic;
@@ -145,8 +163,8 @@
 			this.camera = Camera.getCamera(this.cameraName);
 
 			if(this.camera) {
-            	this.camera.setMode(320,240,30);
-            	this.camera.setQuality(0,91);
+            	this.camera.setMode(this.overrideWidth,this.overrideHeight,this.overrideFPS);
+            	this.camera.setQuality(0,this.overrideQuality);
         	}
 
          	if(this.sendStream) {

@@ -596,6 +596,25 @@ painMap.prototype.setPeerID = function(args) {
     }
 }
 
+painMap.prototype.setCameraSize = function(width, height, fps, quality) {
+    if(width == null) width = 320;
+    if(height == null) height = 240;
+    if(fps == null) fps = 24;
+    if(quality == null) quality = 91;
+
+    // Loop over all pains
+    for(var key in this.pains) {
+        // Grab the pain
+        var p = this.pains[key];
+
+        // Do it
+        var a = document.getElementById("flash"+p.painID);
+        if(a) {
+            a.setCameraSize(width, height, fps, quality);
+        }
+    }
+}
+
 // Limits searching or not
 painMap.prototype.limitSearching = function(limited) {
     this.limitedSearching = limited;
@@ -1915,6 +1934,11 @@ function niceTime() {
 
 function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Set all camera sizes
+function setCameraSize(width, height, fps, quality) {
+    mainPainMap.setCameraSize(width, height, fps, quality);
 }
 
 $(document).ready(function(){
