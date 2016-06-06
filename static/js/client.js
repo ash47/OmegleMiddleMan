@@ -400,6 +400,18 @@ function painMap() {
         var p = pMap.findByID(client_id);
 
         if(p) {
+            // Check for auto disconnect
+            if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3 && !p.hasSpoken) {
+                p.dontAutoSend = true;
+
+                setTimeout(function() {
+                    if(p.client_id == client_id) {
+                        pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
+                    }
+                }, 1000);
+                return;
+            }
+
             // This person has spoken
             p.hasSpoken = true;
 
@@ -411,18 +423,6 @@ function painMap() {
 
             // Manage notifications
             pMap.notifications();
-
-            // Check for auto disconnect
-            if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3) {
-                p.dontAutoSend = true;
-
-                setTimeout(function() {
-                    if(p.client_id == client_id) {
-                        pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
-                    }
-                }, 1000);
-                return;
-            }
 
             // Check for commands
             //if(processCommands(con, msg)) return;
