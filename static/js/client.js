@@ -413,7 +413,7 @@ function painMap() {
             pMap.notifications();
 
             // Check for auto disconnect
-            if(!p.hasTyped && p.ignoreBots.is(':checked')) {
+            if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3) {
                 p.dontAutoSend = true;
 
                 setTimeout(function() {
@@ -1742,6 +1742,14 @@ pain.prototype.disconnect = function() {
 // Returns the prefix for this pain
 pain.prototype.getPrefix = function() {
     return this.nameField.val()+': ';
+}
+
+// Calculates how long we have been connected
+pain.prototype.getTimeConnected = function() {
+    var time = (new Date().getTime()) - this.startTime;
+
+    // Convert to seconds
+    return Math.floor(time / 1000);
 }
 
 // Prints the time we have been connected
