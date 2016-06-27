@@ -425,6 +425,9 @@ function painMap() {
 
                 // They used an illegal word, perform a blackhole
                 if(lowerMsg.indexOf(word) != -1) {
+                    // They are no longer typing
+                    p.updateTalking(false);
+
                     // Add the message
                     p.addTextLine('<font color="red">Stranger:</font> '+htmlEntities(msg), msg, 'Stranger');
 
