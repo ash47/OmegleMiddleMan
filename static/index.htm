@@ -14,11 +14,17 @@
         <div id="windowManager">
             <input id="newOmegleWindow" value="New Omegle Window" type="submit">
             <input id="newCleverBot" value="New Cleverbot Window" type="submit">
+            <input id="blackholeList" value="Auto Blackhole" type="submit">
             <input id="unlockSearching" value="Fix Searching" type="submit">
             <label for="limitSearching">Limit Searching:</label> <input id="limitSearching" type="checkbox" checked>
             <div id="totalOmeglers"></div>
         </div>
 
         <div id="mainCon"></div>
+
+        <div id="autoBlackholeList">
+            <button id="updateBlackHoleList">Update List</button> <b>Enter key words, one per line, of things that will cause someone to be auto blackholed:</b><br>
+            <textarea id="updateBlackHoleListField"></textarea>
+        </div>
     </body>
 </html>

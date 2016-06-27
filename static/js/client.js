@@ -33,6 +33,9 @@ var defaultAutoMessage = omegleSettings.defaultMessage;
 // Is the window focused?
 var windowFocused = true;
 
+// Contains key words that cause an auto blackhole
+var autoBlackHoleList = [];
+
 function painMap() {
     /*
         Setup chat
@@ -54,6 +57,21 @@ function painMap() {
     $('#unlockSearching').click(function() {
         // Ask server to unlock searching
         pMap.socket.emit('omegleUnlock');
+    });
+
+    $('#blackholeList').click(function(){
+        $('#autoBlackholeList').toggle();
+    });
+
+    // Hook auto blackhole
+    $('#updateBlackHoleList').click(function() {
+        var allText = $('#updateBlackHoleListField').val();
+        var allLines = allText.split('\n');
+
+        autoBlackHoleList = allLines;
+        for(var i=0; i<autoBlackHoleList.length; ++i) {
+            autoBlackHoleList[i] = autoBlackHoleList[i].toLowerCase();
+        }
     });
 
     // Handle disconnect
@@ -400,6 +418,22 @@ function painMap() {
         var p = pMap.findByID(client_id);
 
         if(p) {
+            // Check for blackhole
+            var lowerMsg = msg.toLowerCase();
+            for(var i=0; i<autoBlackHoleList.length; ++i) {
+                var word = autoBlackHoleList[i];
+
+                // They used an illegal word, perform a blackhole
+                if(lowerMsg.indexOf(word) != -1) {
+                    // Add the message
+                    p.addTextLine('<font color="red">Stranger:</font> '+htmlEntities(msg), msg, 'Stranger');
+
+                    // Do the blackhole
+                    p.blackhole('Client used: ' + word);
+                    return;
+                }
+            }
+
             // Check for auto disconnect
             if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3 && !p.hasSpoken) {
                 p.dontAutoSend = true;
@@ -1019,6 +1053,18 @@ pain.prototype.setup = function(socket) {
 
     this.button = $('<input>').attr('type', 'submit').attr('value', 'New');
     this.con.append(this.button);
+
+    $('<button>', {
+        text: 'Blackhole',
+        click: function() {
+            if(pain.connected || pain.searching) {
+                if(confirm('Are you sure you want to blackhole this conversation?')) {
+                    // Do the blackhole
+                    pain.blackhole();
+                }
+            }
+        }
+    }).appendTo(this.con);
 
     this.send = $('<input>').attr('type', 'submit').attr('value', 'Send');
     this.con.append(this.send);
@@ -1736,6 +1782,57 @@ pain.prototype.disconnect = function() {
     if(this.newID.is(':checked')) {
         // Get a new randID
         this.newRandid();
+    }
+}
+
+// Performs a blackhole
+pain.prototype.blackhole = function(reason) {
+    // Check if we are already connected
+    if(this.connected || this.searching) {
+        // Disconnect
+        this.socket.emit('omegleBlackhole', this.client_id, this.painID);
+    }
+
+    // Reset vars
+    this.connected = false;
+    this.searching = false;
+    this.client_id = null;
+    this.reconnecting = false;
+
+    // Cleanup callbacks
+    this.resetCallbacks();
+
+    // Change text
+    this.updateButton('New');
+
+    // Print time connected
+    this.printTimeConnected();
+
+    var extra = '';
+    if(reason) {
+        extra = ' Reason: ' + reason;
+    }
+
+    // Add a message
+    this.addTextLine('You have disconnected! Stranger was blackholed.' + extra);
+    this.addLineBreak();
+
+    // Reset messages
+    this.resetCallbacks();
+
+    // New ID
+    if(this.newID.is(':checked')) {
+        // Get a new randID
+        this.newRandid();
+    }
+
+    // Should we reroll?
+    if(this.roll.is(':checked')) {
+        // Create a connection
+        this.createConnection();
+    } else {
+        // Reset button
+        this.updateButton('New');
     }
 }
 

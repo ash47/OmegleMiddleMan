@@ -64,6 +64,13 @@ li {
     vertical-align: top;
 }
 
+.omegleContainer button {
+    width: 80px;
+    height: 40px;
+    margin-right: 4px;
+    vertical-align: top;
+}
+
 .omegleContainer label {
     margin-left: 8px;
 }
@@ -131,7 +138,7 @@ li {
 }
 
 .omegleAutoMessage {
-    width: 250px;
+    width: 168px;
     height:40px;
     resize: none;
 }
@@ -195,4 +202,24 @@ pre {
     user-select: none;
     cursor: pointer;
     cursor: hand;
+}
+
+#autoBlackholeList {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top:29px;
+    bottom: 0px;
+    background: #fff7cc;
+    padding: 4px;
+    display: none;
+}
+
+#updateBlackHoleList {
+    margin-bottom: 4px;
+}
+
+#updateBlackHoleListField {
+    width: 100%;
+    height: calc(100% - 25px);
 }

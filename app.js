@@ -325,6 +325,29 @@ io.on('connection', function(socket) {
         }
     });
 
+    // Client wants us to blackhole a stranger
+    socket.on('omegleBlackhole', function(client_id, painID) {
+        // Remove any queued requests for this painID
+        for(var i=0;i<requiredConnections.length;i++) {
+            // Strip the solutions
+            if(requiredConnections[i].painID == painID) {
+                requiredConnections.splice(i--, 1);
+            }
+        }
+
+        // Are we dealing with a pain at the moment?
+        if(currentPain == painID) {
+            // No current pain anymore
+            currentPain = null;
+
+            // No longer building the connection
+            buildingConnection = false;
+
+            // Try to build any remaining connections
+            buildConnections();
+        }
+    });
+
     // Client wants to send a message to a stranger
     socket.on('omegleSend', function(client_id, msg, callbackNum) {
         var om = omegleClients[client_id];

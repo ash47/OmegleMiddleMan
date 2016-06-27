@@ -44,6 +44,12 @@ OmegleMiddleMan
  - If you have Add Name ticked as well, it will prepend the name field to all messages
  - The order of the boxes is from left to right, the green boxes simply help you to see which window is which
 
+###Dealing with spam bots###
+ - Introducing the blackhole
+ - The blackhole will allow you to move onto a new chat, while keeping the old window active, so the bot will think you're still chatting to them
+ - You can click the "blackhole" button, or use the "auto blackhole" feature at the top to cause certain messages to trigger an auto blackhole, most bots use the same language, pick a key word, or a whole line of their chat, and watch them get blackholed
+ - Do not leave a blank line, or everyone will be blackholed!
+
 ###Ignoring Bots###
  - The ignore bots options will attempt to ignore bots and phone users.
  - It will auto disconnect if they haven't started typing within 10 seconds
