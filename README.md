@@ -85,7 +85,7 @@ OmegleMiddleMan
 - If you close the server while you are chatting with someone, simply open the server and the client will reconnect, none of their messages will be lost, it's possible messages you have sent while the server was down did not go through.
 
 ###Missing Features?###
- - As far as I am aware, the ONLY missing API is the ability to save chats, just copy and paste from the chat window, or screenshot it. It requires a lot of research for something that is kind of useless.
+ - Currently there are no known missing features
 
 ###Credits###
  - Original omegle client was taken from [here](https://github.com/CRogers/omegle), it no longer works as the protocol has mostly changed, and it has many bugs, I would do a pull request, except their code is written in coffee script, and I used javascript
