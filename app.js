@@ -435,6 +435,49 @@ io.on('connection', function(socket) {
         }
     });
 
+    // Omegle logging feature
+    socket.on('omegleLog', function(cacheNumber, toCache) {
+        // Make the request
+        var postData = 'log=' + toCache + '&host=1';
+
+        var postOptions = {
+            host: 'logs.omegle.com',
+            port: '80',
+            path: '/generate',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': postData.length
+            },
+            agent:false
+        };
+
+        var allData = '';
+        var postRequest = http.request(postOptions, function(res) {
+            res.setEncoding('utf8');
+            res.on('data', function (chunk) {
+                allData += chunk;
+            });
+            res.on('end', function() {
+                var leftIndexMarker = 'http://logs.Omegle.com/';
+                var leftIndex = allData.indexOf(leftIndexMarker);
+                var ret = '';
+                if(leftIndex != -1) {
+                    var rightIndex = allData.indexOf('"', leftIndex + leftIndexMarker.length);
+                    if(rightIndex != -1) {
+                        ret = allData.substring(leftIndex, rightIndex);
+                    }
+                }
+
+                socket.emit('omegleLog', cacheNumber, ret);
+            });
+        });
+
+        // post the data
+        postRequest.write(postData);
+        postRequest.end();
+    });
+
     // Reconnects a client
     socket.on('reconnectOmegle', function(args) {
         // Attempt to reconnect

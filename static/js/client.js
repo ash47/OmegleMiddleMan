@@ -36,6 +36,10 @@ var windowFocused = true;
 // Contains key words that cause an auto blackhole
 var autoBlackHoleList = [];
 
+// Used for cache callbacks
+var cacheCallbacks = {};
+var totalCached = 0;
+
 function painMap() {
     /*
         Setup chat
@@ -253,6 +257,22 @@ function painMap() {
         }
     });
 
+    // We got a log file
+    pMap.socket.on('omegleLog', function(cacheNumber, ret) {
+        var cacheInto = cacheCallbacks[cacheNumber];
+        if(cacheInto) {
+            // Cleanup
+            delete cacheCallbacks[cacheNumber];
+
+            // Add the news
+            if(ret == '' || ret == 'http://logs.Omegle.com/413e674') {
+                cacheInto.text('Failed to generate log!');
+            } else {
+                cacheInto.text('Log can be found at ' + ret);
+            }
+        }
+    });
+
     // There was an error
     pMap.socket.on('omegleError', function(args, err) {
         // Search for a new pain
@@ -331,6 +351,9 @@ function painMap() {
         if(p) {
             // Store the time they connected
             p.startTime = new Date().getTime();
+
+            // Clear our message cache
+            p.messageCache = [];
 
             // Tell the person!
             p.addTextLine('A stranger was connected!');
@@ -894,6 +917,11 @@ painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
     } else {
         p.addTextLine(htmlEntities(name)+' has disconnected!');
     }
+
+    // Add the option to generate a log
+    p.generateLogOption();
+
+    // Section off
     p.addLineBreak();
 
     // Reset border color
@@ -979,6 +1007,9 @@ pain.prototype.setup = function(socket) {
 
     // Generate a new random ID
     this.newRandid();
+
+    // Caches messages for log generation
+    this.messageCache = [];
 
     /*
         Create and setup the interface
@@ -1620,6 +1651,45 @@ pain.prototype.sendMessage = function(msg, highlight) {
     }
 }
 
+// Option to genereate a log file
+pain.prototype.generateLogOption = function() {
+    // Add a powered by message
+    this.messageCache.unshift(['Powered by https://github.com/ash47/OmegleMiddleMan']);
+
+    var cache = JSON.stringify(this.messageCache);
+
+    // Clear message cache
+    this.messageCache = [];
+
+    var shouldScroll = false;
+    if(this.field.scrollTop() + this.field.innerHeight() >= this.field.prop('scrollHeight')) {
+        shouldScroll = true;
+    }
+
+    var _this = this;
+
+    // Add the message
+    var cacheContainer = $('<pre>')
+        .append(
+            $('<a>', {
+                text: 'Click here to generate a chat log',
+                click: function() {
+                    var ourCacheNumber = ++totalCached;
+                    cacheCallbacks[ourCacheNumber] = cacheContainer;
+                    cacheContainer.text('Generating log...');
+                    _this.socket.emit('omegleLog', ourCacheNumber, cache);
+                    cache = null;
+                }
+            })
+        )
+        .appendTo(this.field);
+
+    // Scroll to the bottom:
+    if(shouldScroll) {
+        this.field.scrollTop(this.field.prop('scrollHeight'));
+    }
+}
+
 // Broadcasts a message to everyone this controller is set to broadcast to
 pain.prototype.broadcastMessage = function(msg, override, nameOverride) {
     var pains = this.painMap.pains;
@@ -1688,6 +1758,23 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
         shouldScroll = true;
     }
 
+    var canRaw = true;
+    if(raw == null) {
+        raw = msg;
+        canRaw = false;
+    }
+
+    // Add to our log
+    var rawCacheMsg = htmlEntities(raw).replace(/&/g,'%26');
+    if(!prefix) {
+        this.messageCache.push([rawCacheMsg]);
+    } else {
+        var pp = prefix
+        if(prefix == 'Me') pp = 'You';
+
+        this.messageCache.push([pp + ':', rawCacheMsg]);
+    }
+
     // The return value
     var ret;
 
@@ -1713,7 +1800,7 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
     pre.attr('title', niceTime());
 
     // Check if there is a raw container
-    if(raw) {
+    if(canRaw) {
         var thisPain = this;
 
         // Crete the send button
@@ -1779,6 +1866,11 @@ pain.prototype.disconnect = function() {
 
     // Add a message
     this.addTextLine('You have disconnected!');
+
+    // Add the option to generate a log
+    this.generateLogOption();
+
+    // Section off
     this.addLineBreak();
 
     // New ID
@@ -1818,6 +1910,11 @@ pain.prototype.blackhole = function(reason) {
 
     // Add a message
     this.addTextLine('You have disconnected! Stranger was blackholed.' + extra);
+
+    // Logging option
+    this.generateLogOption();
+
+    // Break
     this.addLineBreak();
 
     // Reset messages
