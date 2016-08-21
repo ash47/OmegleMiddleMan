@@ -5,6 +5,7 @@ var app = express();
 
 app.use(express.static(__dirname + '/static'));
 
+var request = require('request');
 var http = require('http');
 var https = require('https');
 var httpServer = http.Server(app);
@@ -27,6 +28,10 @@ io.on('connection', function(socket) {
 
     // Stores challenge omegle clients
     var challenges = {};
+
+    // Stores proxy info
+    var proxyInfo = null;
+    var proxyEnabled = false;
 
     var requiredConnections = [];
     var buildingConnection = false;
@@ -147,6 +152,19 @@ io.on('connection', function(socket) {
 
         // Handle the capcha
         function handleCaptcha(code) {
+            // Are we trying to avoid this BS?
+            if(proxyEnabled && proxyInfo) {
+                // Tell them
+                socket.emit('proxyMessage', 'Server sent a capcha, seaching for a new proxy...', args);
+
+                // Try to find a new proxy to use
+                tryFindNewProxy(function() {
+                    // Con failed due to proxy issues
+                    socket.emit('conFailedProxy', args);
+                });
+                return;
+            }
+
             // Use the new captcha method
             socket.emit('omegleNewChallenge', args, code);
 
@@ -167,95 +185,106 @@ io.on('connection', function(socket) {
 
                 // Process the event
                 om.getAllData(res, function(data) {
-                        // Make sure we got some data
-                        if(data != null) {
-                            // Copy important data
-                            var a = data.indexOf('\'')+1;
-                            var b = data.indexOf('\'', a)-1;
+                    // Make sure we got some data
+                    if(data != null) {
+                        // Copy important data
+                        var a = data.indexOf('\'')+1;
+                        var b = data.indexOf('\'', a)-1;
 
-                            // Grab the challenge
-                            var challenge = data.substring(a, b+1);
+                        // Grab the challenge
+                        var challenge = data.substring(a, b+1);
 
-                            // Store it
-                            challenges[challenge] = om;
+                        // Store it
+                        challenges[challenge] = om;
 
-                            // Send to client to solve
-                            socket.emit('omegleChallenge', args, code, challenge);
-                        } else {
-                            // Failure
-                            socket.emit('omegleError', args, 'Capcha, no data passed!');
-                        }
-                    });
-                }).on('error', function(e) {
-                    // Send to client
-                    socket.emit('omegleError', args, 'Got capcha error: ' + e.message);
-                });
-            }
-
-            // Recaptcha
-            om.on('recaptchaRejected', handleCaptcha);
-            om.on('recaptchaRequired', handleCaptcha);
-
-            // Stranger has disconnected
-            om.on('strangerDisconnected', function() {
-                // Tell client
-                socket.emit('omegleStrangerDisconnected', realClientID);
-            });
-
-            // A spy disconnected
-            om.on('spyDisconnected', function(spy) {
-                // Tell client
-                socket.emit('omegleSpyDisconnected', realClientID, spy);
-            });
-
-            // Stranger sent us a message
-            om.on('gotMessage', function(msg) {
-                // Tell client
-                socket.emit('omegleGotMessage', realClientID, msg);
-            });
-
-            // Got a spy message
-            om.on('spyMessage', function(spy, msg) {
-                // Tell client
-                socket.emit('omegleSpyMessage', realClientID, spy, msg);
-            });
-
-            // We have disconnected
-            om.on('disconnected', function() {
-                // Tell client
-                socket.emit('omegleDisconnected', realClientID);
-            });
-
-            // Stranger started typing
-            om.on('typing', function() {
-                // Tell client
-                socket.emit('omegleTyping', realClientID);
-            });
-
-            // Stranger stopped typing
-            om.on('stoppedTyping', function() {
-                // Tell client
-                socket.emit('omegleStoppedTyping', realClientID);
-            });
-
-            // Are we doing a reconnect?
-            if(reconnect) {
-                // Reconnect to a client
-                om.reconnect(function(err) {
-                    if (err) {
-                        // Send to client
-                        socket.emit('omegleError', args, 'Error reconnecting: ' + err);
+                        // Send to client to solve
+                        socket.emit('omegleChallenge', args, code, challenge);
+                    } else {
+                        // Failure
+                        socket.emit('omegleError', args, 'Capcha, no data passed!');
                     }
                 });
-            } else {
-                // Connect to a client
-                om.start(function(err) {
-                    if (err) {
+            }).on('error', function(e) {
+                // Send to client
+                socket.emit('omegleError', args, 'Got capcha error: ' + e.message);
+            });
+        }
+
+        // Recaptcha
+        om.on('recaptchaRejected', handleCaptcha);
+        om.on('recaptchaRequired', handleCaptcha);
+
+        // Stranger has disconnected
+        om.on('strangerDisconnected', function() {
+            // Tell client
+            socket.emit('omegleStrangerDisconnected', realClientID);
+        });
+
+        // A spy disconnected
+        om.on('spyDisconnected', function(spy) {
+            // Tell client
+            socket.emit('omegleSpyDisconnected', realClientID, spy);
+        });
+
+        // Stranger sent us a message
+        om.on('gotMessage', function(msg) {
+            // Tell client
+            socket.emit('omegleGotMessage', realClientID, msg);
+        });
+
+        // Got a spy message
+        om.on('spyMessage', function(spy, msg) {
+            // Tell client
+            socket.emit('omegleSpyMessage', realClientID, spy, msg);
+        });
+
+        // We have disconnected
+        om.on('disconnected', function() {
+            // Tell client
+            socket.emit('omegleDisconnected', realClientID);
+        });
+
+        // Stranger started typing
+        om.on('typing', function() {
+            // Tell client
+            socket.emit('omegleTyping', realClientID);
+        });
+
+        // Stranger stopped typing
+        om.on('stoppedTyping', function() {
+            // Tell client
+            socket.emit('omegleStoppedTyping', realClientID);
+        });
+
+        // Are we doing a reconnect?
+        if(reconnect) {
+            // Reconnect to a client
+            om.reconnect(function(err) {
+                if (err) {
+                    // Send to client
+                    socket.emit('omegleError', args, 'Error reconnecting: ' + err);
+                }
+            });
+        } else {
+            // Connect to a client
+            om.start(function(err) {
+                if (err) {
+                    if(proxyEnabled && proxyInfo) {
+                        // Tell them
+                        socket.emit('proxyMessage', 'Broken proxy, seaching for a new proxy...', args);
+
+                        // Try to find a new proxy to use
+                        tryFindNewProxy(function() {
+                            // Con failed due to proxy issues
+                            socket.emit('conFailedProxy', args);
+                        });
+                    } else {
                         // Send to client
                         socket.emit('omegleError', args, 'Error starting: ' + err);
                     }
-                });
-            }
+                }
+            }, proxyEnabled && proxyInfo);
+        }
     }
 
     // Creates a new connection
@@ -508,6 +537,71 @@ io.on('connection', function(socket) {
             });
         }
     });
+
+    // Attempt to find a new proxy
+    function tryFindNewProxy(callback) {
+        if(!proxyEnabled) return;
+
+        request('http://gimmeproxy.com/api/getProxy?get=true&protocol=http', function(err, res, body) {
+            if(err) {
+                tryFindNewProxy(callback);
+                return;
+            }
+
+            try {
+                var data = JSON.parse(body);
+                var ip = data.ip;
+                var port = data.port;
+
+                if(ip && port) {
+                    request('http://' + ip + ':' + port + '/', {timeout: 500}, function(err, res) {
+                        if(err || res.statusCode >= 500) {
+                            tryFindNewProxy(callback);
+                        } else {
+                            // Seems to be working
+                            proxyInfo = {
+                                ip: ip,
+                                port: port
+                            };
+
+                            // Tell them their proxy is ready
+                            socket.emit('proxyMessage', 'Routing intial connection through ' + ip + ':' + port + ' to avoid captcha!');
+
+                            if(callback) {
+                                callback(ip, port);
+                            }
+                        }
+                    });
+                } else {
+                    // Try again
+                    tryFindNewProxy(callback)
+                }
+            } catch(e) {
+                // Try again?
+                tryFindNewProxy(callback)
+            }
+        });
+    }
+
+    // Find a new proxy
+    socket.on('newProxy', function() {
+        proxyEnabled = true;
+
+        // Tell them searching has begun
+        socket.emit('proxyMessage', 'Searching for a proxy to route initial connection through...');
+
+        // Try to find a new proxy
+        tryFindNewProxy();
+    });
+
+    // Disables proxy
+    socket.on('disableProxy', function() {
+        // Disable proxy
+        proxyEnabled = false;
+
+        // Tell them
+        socket.emit('proxyMessage', 'Captcha bypass turned off. No proxy will be used.');
+    })
 });
 
 var omeglePortNumber = 3000;

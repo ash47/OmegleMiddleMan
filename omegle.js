@@ -41,7 +41,7 @@ function Omegle(args) {
     }
 
     // Store data
-    this.userAgent = args.userAgent || "omegle node.js npm package/" + version;
+    this.userAgent = args.userAgent || 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36';
     this.host = args.host || Omegle.getSelectedServer();
     this.language = args.language || 'en';
     this.mobile = args.mobile || false;
@@ -127,19 +127,19 @@ Omegle.prototype.errorHandler = function(callback) {
     this.errorCallback = callback;
 };
 
-Omegle.prototype.requestGet = function(path, callback) {
-    this.requestFull('GET', path, false, true, callback);
+Omegle.prototype.requestGet = function(path, callback, proxyInfo) {
+    this.requestFull('GET', path, false, true, callback, proxyInfo);
 };
 
-Omegle.prototype.requestPost = function(path, data, callback) {
-    this.requestFull('POST', path, data, true, callback);
+Omegle.prototype.requestPost = function(path, data, callback, proxyInfo) {
+    this.requestFull('POST', path, data, true, callback, proxyInfo);
 };
 
-Omegle.prototype.requestKA = function(path, data, callback) {
-    this.requestFull('POST', path, data, true, callback);
+Omegle.prototype.requestKA = function(path, data, callback, proxyInfo) {
+    this.requestFull('POST', path, data, true, callback, proxyInfo);
 };
 
-Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback) {
+Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback, proxyInfo) {
     // Grab a reference to this
     var thisOmegle = this;
 
@@ -156,10 +156,17 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback)
         port: 80,
         path: path,
         headers: {
-            'User-Agent': this.userAgent
+            'User-Agent': this.userAgent,
+            host: this.host
         },
         agent:false
     };
+
+    // Add in proxy info
+    if(proxyInfo) {
+        options.host = proxyInfo.ip;
+        options.port = proxyInfo.port;
+    }
 
     // Add headers for form data
     if (formData) {
@@ -219,7 +226,7 @@ Omegle.prototype.reconnect = function(callback) {
 };
 
 // Connects
-Omegle.prototype.start = function(callback) {
+Omegle.prototype.start = function(callback, proxyInfo) {
     var _this = this;
 
     return this.requestGet('/start?' + qs.stringify({
@@ -286,7 +293,7 @@ Omegle.prototype.start = function(callback) {
                 callback(-1);
             }
         });
-    });
+    }, proxyInfo);
 };
 
 Omegle.prototype.recaptcha = function(challenge, answer) {
@@ -308,7 +315,7 @@ Omegle.prototype.send = function(msg, callback) {
     });
 };
 
-Omegle.prototype.getStatus = function(callback) {
+Omegle.prototype.getStatus = function(callback, proxyInfo) {
     this.requestGet('/status?nocache=' + Math.random(), function(res) {
         getAllData(res, function(data) {
             callback(JSON.parse(data));

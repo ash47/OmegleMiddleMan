@@ -40,3 +40,5 @@ node_modules/*
 
 # Ignore the settings file
 static/js/settings.js
+
+b.txt

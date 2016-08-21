@@ -102,6 +102,7 @@ function painMap() {
 
             // Tell the client
             p.addTextLine('Socket error: '+htmlEntities(e.message));
+            throw e;
         }
     });
 
@@ -317,7 +318,7 @@ function painMap() {
                 p.nameField.val('Cleverbot');
 
                 // Auto send message
-                p.sendAutoMessage(client_id, 500);
+                p.sendAutoMessage(client_id, 400);
 
                 // We have found a match
                 found = true;
@@ -428,6 +429,11 @@ function painMap() {
 
         // Handle notifications
         pMap.notifications();
+    });
+
+    // Proxy issues
+    pMap.socket.on('conFailedProxy', function(args) {
+        pmap.conFailedProxy(args.painID);
     });
 
     // Spy disconected
@@ -577,6 +583,20 @@ function painMap() {
 
             // Disconnect on the server
             p.socket.emit('omegleDisconnect', client_id);
+        }
+    });
+
+    pMap.socket.on('proxyMessage', function (msg, args) {
+        // Add disconnect to all pains
+        for(var key in pMap.pains) {
+            // Grab the container
+            var p = pMap.pains[key];
+
+            // Ensure it's relevant
+            if(args == null || p.painID == args.painID) {
+                // Tell the client
+                p.addTextLine(msg);
+            }
         }
     });
 
@@ -894,6 +914,40 @@ painMap.prototype.findSlotByPainID = function(painID) {
 
     // Nothing found
     return null;
+}
+
+// Handles a dodgy proxy
+painMap.prototype.conFailedProxy = function(painID) {
+    var p = this.findSlotByPainID(painID);
+    if(!p) return;
+
+    // Unhook
+    p.connected = false;
+    p.client_id = null;
+
+    // Section off
+    p.addLineBreak();
+
+    // Reset border color
+    p.updateTalking(false);
+
+    // Reset messages
+    p.resetCallbacks();
+
+    // New ID
+    if(p.newID.is(':checked')) {
+        // Get a new randID
+        p.newRandid();
+    }
+
+    // Should we reroll?
+    if(p.roll.is(':checked')) {
+        // Create a connection
+        p.createConnection();
+    } else {
+        // Reset button
+        p.updateButton('New');
+    }
 }
 
 // Disconnects someone
@@ -2165,6 +2219,15 @@ $(document).ready(function(){
     $('#limitSearching').click(function() {
         // Toggle the limited searchingness
         mainPainMap.limitSearching($(this).is(':checked'));
+    });
+
+    // Bypassing captcha
+    $('#bypassCaptcha').click(function() {
+        if($(this).is(':checked')) {
+            mainPainMap.socket.emit('newProxy');
+        } else {
+            mainPainMap.socket.emit('disableProxy');
+        }
     });
 
     // Stop accidental navigation away
