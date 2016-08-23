@@ -746,6 +746,27 @@ painMap.prototype.setupCleverBotPain = function() {
     this.updateWidth();
 }
 
+// Sets up a new chat helper
+painMap.prototype.setupChatHelper = function() {
+    // Create a new pain
+    var p = new helperPain();
+
+    // Store a reference back to this painMap
+    p.painMap = this;
+
+    // Do the setup
+    p.setup(this.socket);
+
+    // Store the pain
+    this.pains.push(p);
+
+    // Update the broadcasting
+    this.updateBroadcast();
+
+    // Update width
+    this.updateWidth();
+}
+
 // Removes the given pain
 painMap.prototype.cleanup = function(painID) {
     // Find the slotID of the pain to remove
@@ -771,6 +792,14 @@ painMap.prototype.updateBroadcast = function(ignoreID) {
         // Grab a key
         var p = this.pains[key];
 
+        // Event
+        if(p.onbroadcastChanged) {
+            p.onbroadcastChanged();
+        }
+
+        // Does this pain not support broadcast?
+        if(p.noBroadcast) continue;
+
         // Build a list of previous values
         var values = [];
         for(var b = 0; b < p.broadcastFields.length; b++) {
@@ -785,28 +814,36 @@ painMap.prototype.updateBroadcast = function(ignoreID) {
 
         // Add a checkbox for all windows
         for(var key2=0; key2 < this.pains.length; key2++) {
-            var p2 = this.pains[key2];
+            (function(p2) {
+                // Create and store the checkbox
+                var tick = $('<input>', {
+                    type: 'checkbox',
+                    mouseover: function() {
+                        p2.highlightThis(true);
+                    },
+                    mouseout: function() {
+                        p2.highlightThis(false);
+                    }
+                });
 
-            // Create and store the checkbox
-            var tick = $('<input type="checkbox">');
+                // Check if the tick is needed
+                if(p == p2) {
+                    var a = $('<div class="broadcastSelf">');
 
-            // Check if the tick is needed
-            if(p == p2) {
-                var a = $('<div class="broadcastSelf">');
+                    p.broadcast.append(a);
 
-                p.broadcast.append(a);
+                    a.append(tick);
+                    p.broadcastFields.push(tick);
+                } else {
+                    p.broadcast.append(tick);
+                    p.broadcastFields.push(tick);
+                }
 
-                a.append(tick);
-                p.broadcastFields.push(tick);
-            } else {
-                p.broadcast.append(tick);
-                p.broadcastFields.push(tick);
-            }
-
-            // Copy in old value
-            if(values.length > 0) {
-                tick.prop('checked', values.shift());
-            }
+                // Copy in old value
+                if(values.length > 0) {
+                    tick.prop('checked', values.shift());
+                }
+            })(this.pains[key2]);
         }
 
 
@@ -827,28 +864,36 @@ painMap.prototype.updateBroadcast = function(ignoreID) {
 
         // Add a checkbox for all windows
         for(var key2=0; key2 < this.pains.length; key2++) {
-            var p2 = this.pains[key2];
+            (function(p2) {
+                // Create and store the checkbox
+                var tick = $('<input>', {
+                    type: 'checkbox',
+                    mouseover: function() {
+                        p2.highlightThis(true);
+                    },
+                    mouseout: function() {
+                        p2.highlightThis(false);
+                    }
+                });
 
-            // Create and store the checkbox
-            var tick = $('<input type="checkbox">');
+                // Check if the tick is needed
+                if(p == p2) {
+                    var a = $('<div class="broadcastSelf">');
 
-            // Check if the tick is needed
-            if(p == p2) {
-                var a = $('<div class="broadcastSelf">');
+                    p.addName.append(a);
 
-                p.addName.append(a);
+                    a.append(tick);
+                    p.addNameFields.push(tick);
+                } else {
+                    p.addName.append(tick);
+                    p.addNameFields.push(tick);
+                }
 
-                a.append(tick);
-                p.addNameFields.push(tick);
-            } else {
-                p.addName.append(tick);
-                p.addNameFields.push(tick);
-            }
-
-            // Copy in old value
-            if(values.length > 0) {
-                tick.prop('checked', values.shift());
-            }
+                // Copy in old value
+                if(values.length > 0) {
+                    tick.prop('checked', values.shift());
+                }
+            })(this.pains[key2]);
         }
     }
 }
@@ -1367,6 +1412,15 @@ pain.prototype.setup = function(socket) {
             }
         }
     });
+}
+
+// Makes this hilighted
+pain.prototype.highlightThis = function(shouldHighlight) {
+    if(shouldHighlight) {
+        this.container.addClass('highlight');
+    } else {
+        this.container.removeClass('highlight');
+    }
 }
 
 // Cleans up a pain
@@ -2076,10 +2130,188 @@ pain.prototype.updateTime = function() {
 }
 
 /*
+    Helper Pain
+*/
+
+function helperPain() {};
+helperPain.prototype = new pain();
+
+helperPain.prototype.setup = function() {
+    // Disable broadcast stuff
+    this.noBroadcast = true;
+
+    // Grab the main con
+    var mainCon = $('#mainCon');
+
+    this.container = $('<table>', {
+        class: 'chatHelperContainer'
+    }).appendTo(mainCon);
+
+    // Container for text strings
+    this.textStringCon = $('<table>').appendTo(
+        $('<td>', {
+            class: 'chatHelperMain'
+        }).appendTo(
+            $('<tr>').appendTo(this.container)
+        )
+    );
+
+    // A store for stuff
+    this.messageList = [];
+
+    var _this = this;
+
+    // Lower control buttons
+    $('<tr>').append(
+        $('<td>').append(
+            $('<button>', {
+                class: 'btn btn-primary',
+                text: 'Add Message',
+                click: function() {
+                    _this.addHelper();
+                }
+            })
+        )
+        .append(
+            $('<button>', {
+                class: 'btn btn-primary',
+                text: 'Import Messages',
+                click: function() {
+                    _this.doImport();
+                }
+            })
+        )
+        .append(
+            $('<button>', {
+                class: 'btn btn-primary',
+                text: 'Export Messages',
+                click: function() {
+                    _this.doExport();
+                }
+            })
+        )
+    ).appendTo(this.container);
+}
+
+// Do an export
+helperPain.prototype.doExport = function() {
+    var allItems = [];
+
+    for(var i=0; i<this.messageList.length; ++i) {
+        var messageItem = this.messageList[i].inputHelper.val().trim();
+
+        if(messageItem.length > 0) {
+            allItems.push(messageItem);
+        }
+    }
+
+    var outputString = JSON.stringify(allItems);
+
+    prompt('Export String:', outputString);
+}
+
+// Do an import
+helperPain.prototype.doImport = function() {
+    try {
+        // Cleanup
+        this.textStringCon.empty();
+        this.messageList = [];
+
+        var msg = prompt('Import String:', '');
+
+        if(msg && msg.length > 0) {
+            var res = JSON.parse(msg);
+
+            for(var i=0; i<res.length; ++i) {
+                this.addHelper(res[i]);
+            }
+        }
+    } catch(e) {
+        // Do nothing
+    }
+}
+
+// Adds a helper button
+helperPain.prototype.addHelper = function(msg) {
+    var infoCon = $('<tr>').appendTo(this.textStringCon);
+    var buttonCon = $('<td>', {
+        class: 'chatHelperButtonCon'
+    }).appendTo(infoCon);
+    var textCon = $('<td>', {
+        class: 'chatHelperInput'
+    }).appendTo(infoCon);
+
+    var inputHelper = $('<textarea  >', {
+        type: 'text',
+        class: 'chatHelperInput'
+    }).appendTo(textCon);
+
+    if(msg) {
+        inputHelper.val(msg);
+    }
+
+    this.messageList.push({
+        buttonCon: buttonCon,
+        inputHelper: inputHelper
+    });
+
+    this.rebuildButtons();
+}
+
+// Reloads / creates the braodcast buttons
+helperPain.prototype.rebuildButtons = function() {
+    var allPains = this.painMap.pains;
+
+    for(var i=0; i<this.messageList.length; ++i) {
+        // Create a new scope
+        (function(buttonCon, inputHelper) {
+            // Cleanup
+            buttonCon.empty();
+
+            for(var key=0; key < allPains.length; key++) {
+                // Grab a key
+                var p = allPains[key];
+
+                // Does this pain not support broadcast?
+                if(p.noBroadcast) continue;
+
+                // Create a new scope
+                (function(painID, pain) {
+                    $('<button>', {
+                        text: (painID+1),
+                        click: function() {
+                            var myMessage = inputHelper.val().trim();
+
+                            if(myMessage.length > 0) {
+                                // Add it to our log
+                                var highlight = pain.addTextLine('<font color="blue">Broadcasted:</font> ' + htmlEntities(myMessage), myMessage, 'Broadcasted');
+
+                                // Send the message
+                                pain.sendMessage(myMessage, highlight);
+                            }
+                        },
+                        mouseover: function() {
+                            pain.highlightThis(true);
+                        },
+                        mouseout: function() {
+                            pain.highlightThis(false);
+                        }
+                    }).appendTo(buttonCon);
+                })(key, p);
+            }
+        })(this.messageList[i].buttonCon, this.messageList[i].inputHelper);
+    }
+}
+
+helperPain.prototype.onbroadcastChanged = function() {
+    this.rebuildButtons();
+}
+
+/*
     Cleverbot pain
 */
 
-function cleverPain() {}
+function cleverPain() {};
 cleverPain.prototype = new pain();
 
 // Creates a connectiom for this pain
@@ -2200,6 +2432,8 @@ function setCameraSize(width, height, fps, quality) {
     mainPainMap.setCameraSize(width, height, fps, quality);
 }
 
+
+
 $(document).ready(function(){
     // Create the pain manager
     mainPainMap = new painMap();
@@ -2214,6 +2448,11 @@ $(document).ready(function(){
     $('#newCleverBot').click(function() {
         // Setup a new pain
         mainPainMap.setupCleverBotPain();
+    });
+
+    $('#newChatHelper').click(function() {
+        // Setup a new pain
+        mainPainMap.setupChatHelper();
     });
 
     $('#limitSearching').click(function() {

@@ -2,7 +2,6 @@ OmegleMiddleMan
 ===============
 
  - Lets you connect to two or more clients, then middle man the conversation, allowing you to intercept, change and even add new messages.
- - It also lets you connect to cleverbot. You can trick people into talk to cleverbot :)
 
 ###Requirements / Setup###
  - You need [Node.js](http://nodejs.org/)
@@ -12,9 +11,8 @@ OmegleMiddleMan
  - By default, it listens on port 3000, you can access the client by going to `localhost:3000` in your webbrower
 
 ###Onscreen options###
- - At the top of the screen you will see `New Omegle Window` and `New Cleverbot Window`
- - Clicking these will add a new Omegle window, or a new Cleverbot window respectively
- - Most of the search options will be displayed on both the omegle and cleverbot windows, however most only work with omegle.
+ - At the top of the screen you will see `New Omegle Window`
+ - Clicking these will add a new Omegle window, or a new Chat Helper window respectively
  - **Reroll:** This option will reconnect you if the stranger disconnects
  - **Moderated:** If selected, you will be connected to the moderated section of omegle, you need this selected if you wish to talk to no perverts
  - **Spy:** This check box will enable spy mode
@@ -24,7 +22,6 @@ OmegleMiddleMan
  - **Any College:** If selected, it will search for people from any college, not jsut your own
  - **Video:** This will enable video mode
   - Use the console command `setCameraSize(width, height, fps, quality)` to change the settings. The default is `setCameraSize(320, 240, 24, 91)`
- - **Delayed:** If selected, a random delay will be added to cleverbot's response, this is so people don't think it's a bot
 
 ###How do I know if my message was delivered?###
  - The icon to the left of a message will highlight green when you send a message
@@ -80,6 +77,9 @@ OmegleMiddleMan
 ###Recapcha###
  - It's possible your bot will be required to answer capchas due to spam
  - When the capcha image appears, simply enter the answer into the chat box, and hit send / press enter, if you are correct, it will find you a new stranger, if you fail, you will get a new capcha
+
+###Chat Helper###
+ - A chat helper lets you define a bunch of common messages that you plan to use over and over, and then broadcast them into a chat.
 
 ###What if I close the server by mistake?###
 - If you close the server while you are chatting with someone, simply open the server and the client will reconnect, none of their messages will be lost, it's possible messages you have sent while the server was down did not go through.

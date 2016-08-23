@@ -8,6 +8,10 @@ li {
     list-style-type: none;
 }
 
+#newCleverBot {
+    display: none;
+}
+
 #mainCon {
     position: absolute;
     left: 0;
@@ -137,6 +141,14 @@ li {
     overflow-y: scroll;
 }
 
+.highlight {
+    background: #FFd5cc;
+}
+
+.highlight .omegleWindow {
+    border: 2px solid #F00 !important;
+}
+
 .omegleAutoMessage {
     width: 168px;
     height:40px;
@@ -222,4 +234,30 @@ pre {
 #updateBlackHoleListField {
     width: 100%;
     height: calc(100% - 25px);
+}
+
+.chatHelperMain {
+    height: 100%;
+    vertical-align: top;
+
+    border: 1px solid #CCC;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.chatHelperContainer {
+    width: 400px;
+    float:left;
+    margin-right:4px;
+    height:100%;
+    padding: 4px;
+}
+
+.chatHelperInput {
+    width: 100%;
+    min-width: 100px;
+}
+
+.chatHelperButtonCon {
+    white-space: nowrap;
 }
