@@ -2144,7 +2144,7 @@ helperPain.prototype.setup = function() {
     var mainCon = $('#mainCon');
 
     this.container = $('<table>', {
-        class: '`Container'
+        class: 'chatHelperContainer'
     }).appendTo(mainCon);
 
     // Container for text strings
