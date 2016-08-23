@@ -2144,7 +2144,7 @@ helperPain.prototype.setup = function() {
     var mainCon = $('#mainCon');
 
     this.container = $('<table>', {
-        class: 'chatHelperContainer'
+        class: '`Container'
     }).appendTo(mainCon);
 
     // Container for text strings
@@ -2283,11 +2283,20 @@ helperPain.prototype.rebuildButtons = function() {
                             var myMessage = inputHelper.val().trim();
 
                             if(myMessage.length > 0) {
+                                var shouldScroll = false;
+                                if(pain.field.scrollTop() + pain.field.innerHeight() >= pain.field.prop('scrollHeight')) {
+                                    shouldScroll = true;
+                                }
+
                                 // Add it to our log
                                 var highlight = pain.addTextLine('<font color="blue">Broadcasted:</font> ' + htmlEntities(myMessage), myMessage, 'Broadcasted');
 
                                 // Send the message
                                 pain.sendMessage(myMessage, highlight);
+
+                                if(shouldScroll) {
+                                    pain.field.scrollTop(pain.field.prop('scrollHeight'));
+                                }
                             }
                         },
                         mouseover: function() {
