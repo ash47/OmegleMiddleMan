@@ -124,6 +124,12 @@ li {
     border-radius: 6px;
 }
 
+.omegleClose.alt {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 4px;
+}
+
 .omegleWindow {
     width:400px;
     height:100%;
@@ -260,4 +266,8 @@ pre {
 
 .chatHelperButtonCon {
     white-space: nowrap;
+}
+
+.closeButtonHolder {
+    height: 32px;
 }

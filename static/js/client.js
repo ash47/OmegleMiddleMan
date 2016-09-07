@@ -2147,6 +2147,13 @@ helperPain.prototype.setup = function() {
         class: 'chatHelperContainer'
     }).appendTo(mainCon);
 
+    // Container for x
+    var td = $('<td>', {
+        class: 'closeButtonHolder'
+    }).appendTo(
+        $('<tr>').appendTo(this.container)
+    )
+
     // Container for text strings
     this.textStringCon = $('<table>').appendTo(
         $('<td>', {
@@ -2191,6 +2198,19 @@ helperPain.prototype.setup = function() {
             })
         )
     ).appendTo(this.container);
+
+    // Add close button
+    $('<div>', {
+        class: 'omegleClose alt',
+        text: 'x',
+        click: function() {
+            // Check if the window was closed
+            if(confirm('Are you sure you want to close this window?')) {
+                // Clean up the pain
+                _this.cleanup();
+            }
+        }
+    }).appendTo(td);
 }
 
 // Do an export
@@ -2314,6 +2334,10 @@ helperPain.prototype.rebuildButtons = function() {
 
 helperPain.prototype.onbroadcastChanged = function() {
     this.rebuildButtons();
+}
+
+helperPain.prototype.addTextLine = function() {
+    // do nothing
 }
 
 /*
