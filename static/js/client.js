@@ -2302,21 +2302,29 @@ helperPain.prototype.rebuildButtons = function() {
                         click: function() {
                             var myMessage = inputHelper.val().trim();
 
+                            var _this = $(this);
+
                             if(myMessage.length > 0) {
-                                var shouldScroll = false;
-                                if(pain.field.scrollTop() + pain.field.innerHeight() >= pain.field.prop('scrollHeight')) {
-                                    shouldScroll = true;
-                                }
+                                // Start typing
+                                pain.startTyping();
 
-                                // Add it to our log
-                                var highlight = pain.addTextLine('<font color="blue">Broadcasted:</font> ' + htmlEntities(myMessage), myMessage, 'Broadcasted');
+                                var delay = 150 + 30 * myMessage.length;
+                                setTimeout(function() {
+                                    var shouldScroll = false;
+                                    if(pain.field.scrollTop() + pain.field.innerHeight() >= pain.field.prop('scrollHeight')) {
+                                        shouldScroll = true;
+                                    }
 
-                                // Send the message
-                                pain.sendMessage(myMessage, highlight);
+                                    // Add it to our log
+                                    var highlight = pain.addTextLine('<font color="blue">Broadcasted:</font> ' + htmlEntities(myMessage), myMessage, 'Broadcasted');
 
-                                if(shouldScroll) {
-                                    pain.field.scrollTop(pain.field.prop('scrollHeight'));
-                                }
+                                    // Send the message
+                                    pain.sendMessage(myMessage, highlight);
+
+                                    if(shouldScroll) {
+                                        pain.field.scrollTop(pain.field.prop('scrollHeight'));
+                                    }
+                                }, delay);
                             }
                         },
                         mouseover: function() {
