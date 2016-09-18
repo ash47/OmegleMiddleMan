@@ -271,3 +271,13 @@ pre {
 .closeButtonHolder {
     height: 32px;
 }
+
+.helperButtonRow {
+    margin-top: 4px;
+}
+
+.smallButton {
+    height: 20px !important;
+    width: auto !important;
+    white-space: pre;
+}

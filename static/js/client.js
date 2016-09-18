@@ -447,35 +447,37 @@ function painMap() {
         var p = pMap.findByID(client_id);
 
         if(p) {
-            // Check for blackhole
-            var lowerMsg = msg.toLowerCase();
-            for(var i=0; i<autoBlackHoleList.length; ++i) {
-                var word = autoBlackHoleList[i];
+            if(!p.wontAutoDisconnect) {
+                // Check for blackhole
+                var lowerMsg = msg.toLowerCase();
+                for(var i=0; i<autoBlackHoleList.length; ++i) {
+                    var word = autoBlackHoleList[i];
 
-                // They used an illegal word, perform a blackhole
-                if(lowerMsg.indexOf(word) != -1) {
-                    // They are no longer typing
-                    p.updateTalking(false);
+                    // They used an illegal word, perform a blackhole
+                    if(lowerMsg.indexOf(word) != -1) {
+                        // They are no longer typing
+                        p.updateTalking(false);
 
-                    // Add the message
-                    p.addTextLine('<font color="red">Stranger:</font> '+htmlEntities(msg), msg, 'Stranger');
+                        // Add the message
+                        p.addTextLine('<font color="red">Stranger:</font> '+htmlEntities(msg), msg, 'Stranger');
 
-                    // Do the blackhole
-                    p.blackhole('Client used: ' + word);
+                        // Do the blackhole
+                        p.blackhole('Client used: ' + word);
+                        return;
+                    }
+                }
+
+                // Check for auto disconnect
+                if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3 && !p.hasSpoken) {
+                    p.dontAutoSend = true;
+
+                    setTimeout(function() {
+                        if(p.client_id == client_id) {
+                            pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
+                        }
+                    }, 1000);
                     return;
                 }
-            }
-
-            // Check for auto disconnect
-            if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3 && !p.hasSpoken) {
-                p.dontAutoSend = true;
-
-                setTimeout(function() {
-                    if(p.client_id == client_id) {
-                        pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
-                    }
-                }, 1000);
-                return;
             }
 
             // This person has spoken
@@ -1205,10 +1207,32 @@ pain.prototype.setup = function(socket) {
     this.autoMessage = $('<textarea class="omegleAutoMessage">').attr('type', 'text').val(defaultAutoMessage);
     this.con.append(this.autoMessage);
 
+    // Helper button container
+    var helperButtonRow = $('<div>', {
+        class: 'helperButtonRow'
+    }).appendTo(this.con);
+
+    // Clear chat
+    $('<button>', {
+        text: 'Clear Chat',
+        class: 'smallButton',
+        click: function() {
+            pain.field.empty();
+        }
+    }).appendTo(helperButtonRow);
+
+    // Prevent Auto Disconnect
+    pain.btnAutoDisconnect = $('<button>', {
+        text: 'Prevent Auto Disconnect',
+        class: 'smallButton',
+        click: function() {
+            pain.wontAutoDisconnect = true;
+            $(this).prop('disabled', true);
+        }
+    }).appendTo(helperButtonRow);
+
     //this.nameField = $('<textarea class="nameField">');
     //this.con.append(this.nameField);
-
-    this.con.append($('<br>'));
 
     this.con.append($('<label for="roll'+this.painID+'">').text('Reroll:'));
     this.roll = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.reroll);
@@ -1486,6 +1510,10 @@ pain.prototype.createConnection = function() {
     // Allow auto messages
     this.dontAutoSend = false;
 
+    // Allow auto D/C
+    this.wontAutoDisconnect = false;
+    this.btnAutoDisconnect.prop('disabled', false);
+
     // Reset message callbacks
     this.resetCallbacks();
 
@@ -1612,7 +1640,7 @@ pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id && !p.hasTyped && !p.hasSpoken && p.ignoreBots.is(':checked')) {
+            if(p.client_id == client_id && !p.hasTyped && !p.hasSpoken && p.ignoreBots.is(':checked') && !p.wontAutoDisconnect) {
                 // Disconnect
                 p.painMap.doDisconnect(client_id, null, 'Disconnected: Slow responder or bot.');
                 return;
@@ -1622,7 +1650,7 @@ pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id && !p.hasSpoken && p.ignoreBots.is(':checked')) {
+            if(p.client_id == client_id && !p.hasSpoken && p.ignoreBots.is(':checked') && !p.wontAutoDisconnect) {
                 // Disconnect
                 p.painMap.doDisconnect(client_id, null, 'Disconnected: Slow responder or bot.');
                 return;
@@ -1770,7 +1798,7 @@ pain.prototype.generateLogOption = function() {
     this.messageCache = [];
 
     var shouldScroll = false;
-    if(this.field.scrollTop() + this.field.innerHeight() >= this.field.prop('scrollHeight')) {
+    if(Math.ceil(this.field.scrollTop() + this.field.innerHeight()) >= Math.floor(this.field.prop('scrollHeight'))) {
         shouldScroll = true;
     }
 
@@ -1862,7 +1890,7 @@ pain.prototype.broadcastTyping = function() {
 pain.prototype.addTextLine = function(msg, raw, prefix) {
     // Scroll detection
     var shouldScroll = false;
-    if(this.field.scrollTop() + this.field.innerHeight() >= this.field.prop('scrollHeight')) {
+    if(Math.ceil(this.field.scrollTop() + this.field.innerHeight()) >= Math.floor(this.field.prop('scrollHeight'))) {
         shouldScroll = true;
     }
 
@@ -1937,7 +1965,7 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
 // Adds a line break
 pain.prototype.addLineBreak = function() {
     var shouldScroll = false;
-    if(this.field.scrollTop() + this.field.innerHeight() >= this.field.prop('scrollHeight')) {
+    if(Math.ceil(this.field.scrollTop() + this.field.innerHeight()) >= Math.floor(this.field.prop('scrollHeight'))) {
         shouldScroll = true;
     }
 
@@ -2311,7 +2339,7 @@ helperPain.prototype.rebuildButtons = function() {
                                 var delay = 150 + 30 * myMessage.length;
                                 setTimeout(function() {
                                     var shouldScroll = false;
-                                    if(pain.field.scrollTop() + pain.field.innerHeight() >= pain.field.prop('scrollHeight')) {
+                                    if(Math.ceil(pain.field.scrollTop() + pain.field.innerHeight()) >= Math.floor(pain.field.prop('scrollHeight'))) {
                                         shouldScroll = true;
                                     }
 
