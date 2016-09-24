@@ -72,9 +72,13 @@ function painMap() {
         var allText = $('#updateBlackHoleListField').val();
         var allLines = allText.split('\n');
 
-        autoBlackHoleList = allLines;
+        autoBlackHoleList = [];
         for(var i=0; i<autoBlackHoleList.length; ++i) {
-            autoBlackHoleList[i] = autoBlackHoleList[i].toLowerCase();
+            var theLine = allLines[i].toLowerCase();
+
+            if(theLine.length > 0) {
+                autoBlackHoleList.push(theLine);
+            }
         }
     });
 
@@ -159,7 +163,7 @@ function painMap() {
                 }
 
                 // Create the text
-                p.updateButton('Disconnect');
+                p.updateButton('Disconnect', 'btn-danger');
 
                 // We have found a match
                 found = true;
@@ -309,7 +313,7 @@ function painMap() {
                 p.startTime = new Date().getTime();
 
                 // Create the text
-                p.updateButton('Disconnect');
+                p.updateButton('Disconnect', 'btn-danger');
 
                 // Tell the user
                 p.addTextLine('Cleverbot has connected!');
@@ -581,7 +585,7 @@ function painMap() {
             p.client_id = null;
 
             // Reset button
-            p.updateButton('New');
+            p.updateButton('New', 'btn-primary');
 
             // Disconnect on the server
             p.socket.emit('omegleDisconnect', client_id);
@@ -993,7 +997,7 @@ painMap.prototype.conFailedProxy = function(painID) {
         p.createConnection();
     } else {
         // Reset button
-        p.updateButton('New');
+        p.updateButton('New', 'btn-primary');
     }
 }
 
@@ -1052,7 +1056,7 @@ painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
         p.createConnection();
     } else {
         // Reset button
-        p.updateButton('New');
+        p.updateButton('New', 'btn-primary');
     }
 }
 
@@ -1118,17 +1122,21 @@ pain.prototype.setup = function(socket) {
 
     var mainCon = $('#mainCon');
 
-    this.container = $('<table class="omegleContainer">');
+    this.container = $('<div>', {
+        class: 'omegleContainer'
+    });
     mainCon.append(this.container);
 
-    var tr = $('<tr>');
-    this.container.append(tr);
+    //var tr = $('<tr>');
+    //this.container.append(tr);
 
-    var td = $('<td>');
-    tr.append(td);
+    //var td = $('<td>');
+    //tr.append(td);
 
-    var flashCon = $('<div class="flashCon">').hide();
-    td.append(flashCon);
+    var flashCon = $('<div class="flashCon">')
+        .hide()
+        .appendTo(this.container);
+    //td.append(flashCon);
 
     this.flash = $('<object type="application/x-shockwave-flash" data="flash/webcams.swf" width="400" height="240" id="flash'+this.painID+'">');
     this.flash.html('<param name="wmode" value="transparent">');
@@ -1157,39 +1165,56 @@ pain.prototype.setup = function(socket) {
     // Attempt to setup flash
     initFlash();
 
-    tr = $('<tr>');
-    this.container.append(tr);
+    //tr = $('<tr>').appendTo(this.container);
 
-    td = $('<td class="omegleWindowContainer">');
-    tr.append(td);
+    td = $('<div>', {
+        class: 'omegleWindowContainer'
+    }).appendTo(this.container);
 
-    this.close = $('<div class="omegleClose">');
-    td.append(this.close);
-    this.close.text('x');
-    this.close.click(function() {
-        // Check if the window was closed
-        if(confirm('Are you sure you want to close this window?')) {
-            // Clean up the pain
-            pain.cleanup();
+    this.close = $('<div>', {
+        class: 'omegleClose',
+        text: 'x',
+        click: function() {
+            // Check if the window was closed
+            if(confirm('Are you sure you want to close this window?')) {
+                // Clean up the pain
+                pain.cleanup();
+            }
         }
-    });
+    }).appendTo(td);
 
-    this.field = $('<div class="omegleWindow">');
-    td.append(this.field);
+    this.field = $('<div>', {
+        class: 'omegleWindow'
+    }).appendTo(td);
 
-    tr = $('<tr>');
-    this.container.append(tr);
+    //tr = $('<tr>').appendTo(this.container);
 
-    this.con = $('<td>');
-    tr.append(this.con);
+    //this.con = $('<td>').appendTo(tr);
 
-    this.input = $('<textarea class="omegleField">');
-    this.con.append(this.input);
+    this.con = $('<div>', {
+        class: 'bottomContainer'
+    }).appendTo(this.container);
 
-    this.button = $('<input>').attr('type', 'submit').attr('value', 'New');
-    this.con.append(this.button);
+    this.input = $('<textarea>', {
+        class: 'form-control omegleField'
+    }).appendTo(this.con);
+
+    var buttonHolderTable = $('<tr>').appendTo(
+        $('<table>', {
+            class: 'buttonHolderTable'
+        }).appendTo(this.con)
+    );
+
+    var buttonHolder = $('<td>').appendTo(buttonHolderTable);
+    var buttonHolder2 = $('<td>').appendTo(buttonHolderTable);
+
+    this.button = $('<button>', {
+        text: 'New',
+        class: 'btn btn-primary fixedButton'
+    }).appendTo(buttonHolder);
 
     $('<button>', {
+        class: 'btn btn-danger',
         text: 'Blackhole',
         click: function() {
             if(pain.connected || pain.searching) {
@@ -1199,23 +1224,28 @@ pain.prototype.setup = function(socket) {
                 }
             }
         }
-    }).appendTo(this.con);
+    }).appendTo(buttonHolder);
 
-    this.send = $('<input>').attr('type', 'submit').attr('value', 'Send');
-    this.con.append(this.send);
+    this.send = $('<button>', {
+        class: 'btn btn-primary',
+        text: 'Send'
+    }).appendTo(buttonHolder);
 
-    this.autoMessage = $('<textarea class="omegleAutoMessage">').attr('type', 'text').val(defaultAutoMessage);
-    this.con.append(this.autoMessage);
+    this.autoMessage = $('<textarea>', {
+        class: 'form-control omegleAutoMessage',
+        type: 'text',
+        val: defaultAutoMessage
+    }).appendTo(buttonHolder2);
 
     // Helper button container
     var helperButtonRow = $('<div>', {
         class: 'helperButtonRow'
-    }).appendTo(this.con);
+    }).appendTo(buttonHolder);
 
     // Clear chat
     $('<button>', {
         text: 'Clear Chat',
-        class: 'smallButton',
+        class: 'btn btn-danger smallButton',
         click: function() {
             pain.field.empty();
         }
@@ -1224,7 +1254,7 @@ pain.prototype.setup = function(socket) {
     // Prevent Auto Disconnect
     pain.btnAutoDisconnect = $('<button>', {
         text: 'Prevent Auto Disconnect',
-        class: 'smallButton',
+        class: 'btn btn-danger smallButton',
         click: function() {
             pain.wontAutoDisconnect = true;
             $(this).prop('disabled', true);
@@ -1234,72 +1264,159 @@ pain.prototype.setup = function(socket) {
     //this.nameField = $('<textarea class="nameField">');
     //this.con.append(this.nameField);
 
-    this.con.append($('<label for="roll'+this.painID+'">').text('Reroll:'));
-    this.roll = $('<input id="roll'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.reroll);
-    this.con.append(this.roll);
+    var topRow = $('<div>').appendTo(this.con);
+
+    this.roll = $('<input>', {
+        id: 'roll' + this.painID,
+        type: 'checkbox',
+        checked: omegleSettings.reroll
+    }).prependTo(
+        $('<label>', {
+            for: 'roll' + this.painID,
+            text: 'Reroll'
+        }).appendTo(topRow)
+    );
 
     // Add the moderated button
-    this.addModeratedButton();
+    this.addModeratedButton(topRow);
 
-    this.nameField = $('<textarea class="nameField">').attr('type', 'text').val('Stranger '+this.painID);
-    this.con.append(this.nameField);
+    this.nameField = $('<textarea>', {
+        class: 'form-control nameField',
+        type: 'text',
+        val: 'Stranger '+this.painID
+    }).appendTo(topRow);
 
-    this.timeField = $('<textarea class="timeField">').attr('type', 'text');
-    this.con.append(this.timeField);
+    this.timeField = $('<textarea>', {
+        class: 'form-control timeField',
+        type: 'text'
+    }).appendTo(topRow);
 
-    this.con.append($('<br>'));
+    var middleRow = $('<div>').appendTo(this.con);
 
-    this.con.append($('<label for="spy'+this.painID+'">').text('Spy:'));
-    this.spy = $('<input id="spy'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.spy);
-    this.con.append(this.spy);
+    // Spy mode option
+    this.spy = $('<input>', {
+        id: 'spy' + this.painID,
+        type: 'checkbox',
+        checked: omegleSettings.spy
+    }).prependTo(
+        $('<label>', {
+            for: 'spy' + this.painID,
+            text: 'Spy'
+        }).appendTo(middleRow)
+    );
 
-    this.con.append($('<label for="ask'+this.painID+'">').text('Ask:'));
-    this.ask = $('<input id="ask'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.ask);
-    this.con.append(this.ask);
+    // Ask question option
+    this.ask = $('<input>', {
+        id: 'ask' + this.painID,
+        type: 'checkbox',
+        checked: omegleSettings.ask
+    }).prependTo(
+        $('<label>', {
+            for: 'ask' + this.painID,
+            text: 'Ask'
+        }).appendTo(middleRow)
+    );
 
-    this.con.append($('<label for="likes'+this.painID+'">').text('Use Likes:'));
-    this.useLikes = $('<input id="likes'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.likes);
-    this.con.append(this.useLikes);
+    // Use likes
+    this.useLikes = $('<input>', {
+        id: 'likes' + this.painID,
+        type: 'checkbox',
+        checked: omegleSettings.likes
+    }).prependTo(
+        $('<label>', {
+            for: 'likes' + this.painID,
+            text: 'Use Likes'
+        }).appendTo(middleRow)
+    );
 
-    this.con.append($('<label for="college'+this.painID+'">').text('College:'));
-    this.college = $('<input id="college'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.useCollege);
-    this.con.append(this.college);
+    // College
+    this.college = $('<input>', {
+        id: 'college' + this.painID,
+        type: 'checkbox',
+        checked: omegleSettings.useCollege
+    }).prependTo(
+        $('<label>', {
+            for: 'college' + this.painID,
+            text: 'College'
+        }).appendTo(middleRow)
+    );
 
-    this.con.append($('<label for="any'+this.painID+'">').text('Any College:'));
-    this.anyCollge = $('<input id="any'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.anyCollge);
-    this.con.append(this.anyCollge);
+    // Any College
+    this.anyCollge = $('<input>', {
+        id: 'any' + this.painID,
+        type: 'checkbox',
+        checkbox: 'omegleSettings.anyCollge'
+    }).prependTo(
+        $('<label>', {
+            for: 'any' + this.painID,
+            text: 'Any College'
+        }).appendTo(middleRow)
+    );
 
-    this.con.append($('<br>'));
+    var bottomRow = $('<div>').appendTo(this.con);
 
     // New ID
-    this.con.append($('<label for="newID'+this.painID+'">').text('NewID:'));
-    this.newID = $('<input id="newID'+this.painID+'">').attr('type', 'checkbox').change(function() {
-        // Get a new randID
-        pain.newRandid();
-    });
-    this.con.append(this.newID);
+    this.newID = $('<input>', {
+        id: 'newID' + this.painID,
+        type: 'checkbox',
+        change: function() {
+            // Get a new randID
+            pain.newRandid();
+        }
+    }).prependTo(
+        $('<label>', {
+            for: 'newID' + this.painID,
+            text: 'NewID'
+        }).appendTo(bottomRow)
+    );
 
     // Auto Broadcast
-    this.con.append($('<label for="autoBroadcast'+this.painID+'">').text('Auto Broadcast:'));
-    this.autoBroadcast = $('<input id="autoBroadcast'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
-    this.con.append(this.autoBroadcast);
+    this.autoBroadcast = $('<input>', {
+        id: 'autoBroadcast' + this.painID,
+        type: 'checkbox',
+        checked: true
+    }).prependTo(
+        $('<label>', {
+            for: 'autoBroadcast' + this.painID,
+            text: 'Auto Broadcast'
+        }).appendTo(bottomRow)
+    );
 
     // Ignore Bots
-    this.con.append($('<label for="ignoreBots'+this.painID+'">').text('Ignore Bots:'));
-    this.ignoreBots = $('<input id="ignoreBots'+this.painID+'">').attr('type', 'checkbox').prop('checked', true);
-    this.con.append(this.ignoreBots);
+    this.ignoreBots = $('<input>', {
+        id: 'ignoreBots' + this.painID,
+        type: 'checkbox',
+        checked: true
+    }).prependTo(
+        $('<label>', {
+            for: 'ignoreBots' + this.painID,
+            text: 'Ignore Bots'
+        }).appendTo(bottomRow)
+    );
 
     // Video Options
-    this.con.append($('<label for="video'+this.painID+'">').text('Video:'));
-    this.video = $('<input id="video'+this.painID+'">').attr('type', 'checkbox').change(function() {
-        // Hide or unhide the video stuff
-        if(this.checked) {
-            flashCon.show();
-        } else {
-            flashCon.hide();
-        }
-    }).prop('checked', omegleSettings.video);
-    this.con.append(this.video);
+    this.video = $('<input>', {
+        id: 'video' + this.painID,
+        type: 'checkbox',
+        change: function() {
+            // Hide or unhide the video stuff
+            if(this.checked) {
+                flashCon.show();
+                pain.container.addClass('videoEnabled');
+            } else {
+                flashCon.hide();
+                pain.camSelector.hide();
+                pain.micSelector.hide();
+                pain.container.removeClass('videoEnabled');
+            }
+        },
+        checked: omegleSettings.video
+    }).prependTo(
+        $('<label>', {
+            for: 'video' + this.painID,
+                text: 'Video'
+        }).appendTo(bottomRow)
+    );
 
     // Should we show the video stuff?
     if(omegleSettings.video) {
@@ -1307,19 +1424,25 @@ pain.prototype.setup = function(socket) {
     }
 
     // Append selectors
-    this.camSelector = $('<select/>').hide();;
-    this.con.append(this.camSelector);
-    this.camSelector.change(function() {
-        document.getElementById("flash"+painID).setCameraName($(this).find(":selected").index().toString());
-    });
+    this.camSelector = $('<select>', {
+        class: 'form-control',
+        change: function() {
+            document.getElementById('flash' + painID)
+                .setCameraName(
+                    $(this).find(':selected').index().toString()
+                );
+        }
+    }).appendTo(this.con).hide();
 
-    this.micSelector = $('<select/>').hide();;
-    this.con.append(this.micSelector);
-    this.micSelector.change(function() {
-        document.getElementById("flash"+painID).setMicID($(this).find(":selected").index());
-    });
-
-    this.con.append($('<br>'));
+    this.micSelector = $('<select>', {
+        class: 'form-control',
+        change: function() {
+            document.getElementById('flash' + painID)
+                .setMicID(
+                    $(this).find(':selected').index()
+                );
+        }
+    }).appendTo(this.con).hide();
 
     this.con.append($('<label>').text('B:'));
     this.broadcast = $('<div class="omegleBroadcast">');
@@ -1367,7 +1490,7 @@ pain.prototype.setup = function(socket) {
 
                 // Confirm the D/C
                 if(this.connected) {
-                    pain.updateButton('Disconnect');
+                    pain.updateButton('Disconnect', 'btn-danger');
                     pain.confirmDisconnect = false;
                 }
             }
@@ -1430,7 +1553,7 @@ pain.prototype.setup = function(socket) {
 
                 // Confirm the D/C
                 if(this.connected) {
-                    pain.updateButton('Disconnect');
+                    pain.updateButton('Disconnect', 'btn-danger');
                     pain.confirmDisconnect = false;
                 }
             }
@@ -1486,7 +1609,7 @@ pain.prototype.hookButtons = function() {
                 pain.disconnect();
             } else {
                 // Confirm the D/C
-                pain.updateButton('Confirm');
+                pain.updateButton('Confirm', 'btn-danger');
                 pain.confirmDisconnect = true;
             }
         } else if(pain.searching) {
@@ -1585,7 +1708,7 @@ pain.prototype.createConnection = function() {
     this.addTextLine('Creating a connection...');
 
     // Change text
-    this.updateButton('Cancel Search');
+    this.updateButton('Cancel Search', 'btn-danger');
 }
 
 // Reconnects when a connection to our server fails
@@ -1690,9 +1813,18 @@ pain.prototype.getTopics = function() {
 }
 
 // Updates a button
-pain.prototype.updateButton = function(newText) {
+pain.prototype.updateButton = function(newText, newClass) {
     // Update the text
-    this.button.attr('value' ,newText);
+    this.button.text(newText);
+
+    // Remove the old class
+    if(this.button.oldClass) {
+        this.button.removeClass(this.button.oldClass);
+    }
+
+    // Add the new class
+    this.button.oldClass = newClass;
+    this.button.addClass(newClass);
 }
 
 // Starts typing on a given controller
@@ -1782,7 +1914,7 @@ pain.prototype.sendMessage = function(msg, highlight) {
 
     // No need to confirm anymore
     if(this.connected) {
-        this.updateButton('Disconnect');
+        this.updateButton('Disconnect', 'btn-danger');
         this.confirmDisconnect = false;
     }
 }
@@ -1940,7 +2072,10 @@ pain.prototype.addTextLine = function(msg, raw, prefix) {
         var thisPain = this;
 
         // Crete the send button
-        ret = $('<span class="easySend">').html('<b>&gt;</b>').click(function() {
+        ret = $('<span>', {
+            class: 'easySend',
+            html: '<b>&gt;</b>'
+        }).click(function() {
             // Decide how to send the message
             if(prefix == 'Me') {
                 thisPain.broadcastMessage(raw, true, true);
@@ -1995,7 +2130,7 @@ pain.prototype.disconnect = function() {
     this.resetCallbacks();
 
     // Change text
-    this.updateButton('New');
+    this.updateButton('New', 'btn-primary');
 
     // Print time connected
     this.printTimeConnected();
@@ -2034,7 +2169,7 @@ pain.prototype.blackhole = function(reason) {
     this.resetCallbacks();
 
     // Change text
-    this.updateButton('New');
+    this.updateButton('New', 'btn-primary');
 
     // Print time connected
     this.printTimeConnected();
@@ -2068,7 +2203,7 @@ pain.prototype.blackhole = function(reason) {
         this.createConnection();
     } else {
         // Reset button
-        this.updateButton('New');
+        this.updateButton('New', 'btn-primary');
     }
 }
 
@@ -2117,10 +2252,17 @@ pain.prototype.printTimeConnected = function() {
 }
 
 // Adds a moderate option button
-pain.prototype.addModeratedButton = function() {
-    this.con.append($('<label for="mod'+this.painID+'">').text('Moderated:'));
-    this.moderated = $('<input id="mod'+this.painID+'">').attr('type', 'checkbox').prop('checked', omegleSettings.moderated);
-    this.con.append(this.moderated);
+pain.prototype.addModeratedButton = function(topRow) {
+    this.moderated = $('<input>', {
+        id: 'mod' + this.painID,
+        type: 'checkbox',
+        checked: omegleSettings.moderated
+    }).prependTo(
+        $('<label>', {
+            for: 'mod' + this.painID,
+            text: 'Moderated'
+        }).appendTo(topRow)
+    );
 }
 
 // Updates the time display for this window
@@ -2289,9 +2431,9 @@ helperPain.prototype.addHelper = function(msg) {
         class: 'chatHelperInput'
     }).appendTo(infoCon);
 
-    var inputHelper = $('<textarea  >', {
+    var inputHelper = $('<textarea>', {
         type: 'text',
-        class: 'chatHelperInput'
+        class: 'chatHelperInput form-control'
     }).appendTo(textCon);
 
     if(msg) {
@@ -2326,6 +2468,7 @@ helperPain.prototype.rebuildButtons = function() {
                 // Create a new scope
                 (function(painID, pain) {
                     $('<button>', {
+                        class: 'btn btn-primary smallerChatButton',
                         text: (painID+1),
                         click: function() {
                             var myMessage = inputHelper.val().trim();
@@ -2395,7 +2538,7 @@ cleverPain.prototype.createConnection = function() {
     this.addTextLine('Creating a connection...');
 
     // Change text
-    this.updateButton('Cancel Search');
+    this.updateButton('Cancel Search', 'btn-danger');
 }
 
 // Sends a message to the given controller
@@ -2431,7 +2574,7 @@ cleverPain.prototype.disconnect = function() {
     this.client_id = null;
 
     // Change text
-    this.updateButton('New');
+    this.updateButton('New', 'btn-primary');
 
     // Print time connected
     this.printTimeConnected();

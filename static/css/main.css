@@ -2,6 +2,7 @@ body {
     background: #fff7ee;
     padding:0px;
     margin:0px;
+    overflow: hidden;
 }
 
 li {
@@ -13,12 +14,15 @@ li {
 }
 
 #mainCon {
-    position: absolute;
+    /*position: absolute;
     left: 0;
     width:0px;
-    top: 32px;
+    top: 40px;
     bottom: 0;
-    padding-bottom:4px;
+    padding-bottom:4px;*/
+
+    margin-top: 40px;
+    height: calc(100% - 40px;);
 }
 
 #windowManager {
@@ -33,16 +37,13 @@ li {
     border-bottom:1px solid #000;
 }
 
-#windowManager input[type=checkbox] {
-    position: fixed;
-    top: 6px;
-}
-
 .omegleContainer {
     width: 400px;
     float:left;
     margin-right:4px;
-    height:100%;
+
+    height: calc(100% - 40px);
+    display: list-item;
 }
 
 .chatMain {
@@ -69,7 +70,6 @@ li {
 }
 
 .omegleContainer button {
-    width: 80px;
     height: 40px;
     margin-right: 4px;
     vertical-align: top;
@@ -86,14 +86,23 @@ li {
 }
 
 .omegleField {
-    width: 100%;
+    width: 400px;
     height:120px;
     border: 4px solid #AAA;
     resize: none;
+    padding: 0px;
 }
 
 .omegleWindowContainer {
-    height:100%;
+    position: absolute;
+    top: 46px;
+    bottom: 366px;
+    width: 400px;
+}
+
+.videoEnabled .omegleWindowContainer {
+    top: 286px;
+    bottom: 434px;
 }
 
 .omegleClose {
@@ -132,7 +141,6 @@ li {
 
 .omegleWindow {
     width:400px;
-    height:100%;
     border: 1px solid #CCC;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -142,9 +150,10 @@ li {
     -webkit-border-top-right-radius: 8px;
     background: #FFF;
     font-family: Helvetica,Arial,sans-serif;
-    padding: 8px;
+    padding: 4px;
 
     overflow-y: scroll;
+    height: 100%;
 }
 
 .highlight {
@@ -156,29 +165,37 @@ li {
 }
 
 .omegleAutoMessage {
-    width: 168px;
-    height:40px;
+    width: 120px;
+    height: 85px !important;
     resize: none;
+    display: inline-block;
+    padding: 4px;
 }
 
 .nameField {
     width: 145px;
-    height: 20px;
+    height: 20px !important;
     margin-left:4px;
     margin-top:2px;
     resize: none;
+    display: inline-block;
+    padding: 0px;
+    overflow: hidden
 }
 
 .timeField {
-    width: 90px;
-    height: 20px;
+    width: 79px;
+    height: 20px !important;
     margin-left:4px;
     margin-top:2px;
     resize: none;
+    display: inline-block;
+    padding: 0px;
+    overflow: hidden;
 }
 
 .topicField {
-    width: 420px;
+    width: 400px;
     height: 80px;
     resize: none;
 }
@@ -205,7 +222,7 @@ pre {
 
 .easySend {
     width: 16px;
-    padding: 0px 5px 2px 5px;
+    padding: 0px 5px 2px 12px;
     margin-right: 0px;
     color: #000;
 
@@ -226,7 +243,7 @@ pre {
     position: absolute;
     left: 0px;
     right: 0px;
-    top:29px;
+    top:44px;
     bottom: 0px;
     background: #fff7cc;
     padding: 4px;
@@ -249,6 +266,8 @@ pre {
     border: 1px solid #CCC;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+
+    padding: 4px;
 }
 
 .chatHelperContainer {
@@ -277,7 +296,50 @@ pre {
 }
 
 .smallButton {
-    height: 20px !important;
     width: auto !important;
     white-space: pre;
+}
+
+.omegleWindow pre {
+    border: none;
+    background: none;
+    padding: 0px;
+    overflow: hidden;
+}
+
+.fixedButton {
+    width: 120px;
+}
+
+hr {
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+    border-top: 1px solid #AAA;
+}
+
+.smallerChatButton {
+    padding: 2px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    margin-right: 4px;
+}
+
+.buttonHolder {
+    display: inline-block;
+    height: 90px;
+}
+
+.buttonHolderTable {
+    margin-top: 4px;
+}
+
+.bottomContainer {
+    position: absolute;
+    bottom: 4px;
+
+    height: 360px;
+}
+
+.videoEnabled .bottomContainer {
+    height: 426px;
 }
