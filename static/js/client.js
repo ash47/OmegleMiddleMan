@@ -273,7 +273,7 @@ function painMap() {
             if(ret == '' || ret == 'http://logs.Omegle.com/413e674') {
                 cacheInto.text('Failed to generate log!');
             } else {
-                cacheInto.text('Log can be found at ' + ret);
+                cacheInto.html('<a href="' + ret + '" target="_blank">' + ret + '</a>');
             }
         }
     });
@@ -2325,7 +2325,9 @@ helperPain.prototype.setup = function() {
     )
 
     // Container for text strings
-    this.textStringCon = $('<table>').appendTo(
+    this.textStringCon = $('<table>', {
+        class: 'chatHelperStringTable'
+    }).appendTo(
         $('<td>', {
             class: 'chatHelperMain'
         }).appendTo(
@@ -2340,7 +2342,9 @@ helperPain.prototype.setup = function() {
 
     // Lower control buttons
     $('<tr>').append(
-        $('<td>').append(
+        $('<td>', {
+            class: 'chatHelperBottomButtonCon'
+        }).append(
             $('<button>', {
                 class: 'btn btn-primary',
                 text: 'Add Message',
@@ -2351,7 +2355,7 @@ helperPain.prototype.setup = function() {
         )
         .append(
             $('<button>', {
-                class: 'btn btn-primary',
+                class: 'btn btn-primary chatHelperBottomButtonConMargin',
                 text: 'Import Messages',
                 click: function() {
                     _this.doImport();

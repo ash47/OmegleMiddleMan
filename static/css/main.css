@@ -91,6 +91,8 @@ li {
     border: 4px solid #AAA;
     resize: none;
     padding: 0px;
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 .omegleWindowContainer {
@@ -274,7 +276,7 @@ pre {
     width: 400px;
     float:left;
     margin-right:4px;
-    height:100%;
+    height: calc(100% - 36px);
     padding: 4px;
 }
 
@@ -342,4 +344,23 @@ hr {
 
 .videoEnabled .bottomContainer {
     height: 426px;
+}
+
+.chatHelperBottomButtonCon{
+    padding-top: 4px;
+    text-align: center;
+}
+
+.chatHelperBottomButtonConMargin {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.chatHelperStringTable {
+    width: 100%;
+}
+
+.omegleContainer a {
+    cursor: pointer;
+    cursor: hand;
 }
