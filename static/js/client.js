@@ -73,7 +73,7 @@ function painMap() {
         var allLines = allText.split('\n');
 
         autoBlackHoleList = [];
-        for(var i=0; i<autoBlackHoleList.length; ++i) {
+        for(var i=0; i<allLines.length; ++i) {
             var theLine = allLines[i].toLowerCase();
 
             if(theLine.length > 0) {
