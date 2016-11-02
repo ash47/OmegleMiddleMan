@@ -77,7 +77,24 @@ function painMap() {
             var theLine = allLines[i].toLowerCase();
 
             if(theLine.length > 0) {
-                autoBlackHoleList.push(theLine);
+                var sort = 'none';
+
+                var matchText = '[exact]';
+                if(theLine.indexOf(matchText) == 0) {
+                    sort = 'exact';
+                    theLine = theLine.substr(matchText.length);
+                }
+
+                var matchText = '[first]';
+                if(theLine.indexOf(matchText) == 0) {
+                    sort = 'first';
+                    theLine = theLine.substr(matchText.length);
+                }
+
+                autoBlackHoleList.push({
+                    text: theLine,
+                    sort: sort
+                });
             }
         }
     });
@@ -455,10 +472,32 @@ function painMap() {
                 // Check for blackhole
                 var lowerMsg = msg.toLowerCase();
                 for(var i=0; i<autoBlackHoleList.length; ++i) {
-                    var word = autoBlackHoleList[i];
+                    var info = autoBlackHoleList[i]
+                    var word = info.text;
+                    var sort = info.sort;
 
-                    // They used an illegal word, perform a blackhole
-                    if(lowerMsg.indexOf(word) != -1) {
+                    console.log(word, sort);
+
+                    var doBlackhole = false;
+
+                    if(sort == 'none') {
+                        // They used an illegal word, perform a blackhole
+                        if(lowerMsg.indexOf(word) != -1) {
+                            doBlackhole = true;
+                        }
+                    } else if(sort == 'exact') {
+                        // They used an exact illegal phrase
+                        if(lowerMsg == word) {
+                            doBlackhole = true;
+                        }
+                    } else if(sort == 'first') {
+                        if(!p.hasSpoken && lowerMsg.indexOf(word) != -1) {
+                            doBlackhole = true;
+                        }
+                    }
+
+                    // Should we do the blackhole?
+                    if(doBlackhole) {
                         // They are no longer typing
                         p.updateTalking(false);
 
