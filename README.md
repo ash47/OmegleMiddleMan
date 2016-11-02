@@ -45,7 +45,11 @@ OmegleMiddleMan
  - Introducing the blackhole
  - The blackhole will allow you to move onto a new chat, while keeping the old window active, so the bot will think you're still chatting to them
  - You can click the "blackhole" button, or use the "auto blackhole" feature at the top to cause certain messages to trigger an auto blackhole, most bots use the same language, pick a key word, or a whole line of their chat, and watch them get blackholed
- - Do not leave a blank line, or everyone will be blackholed!
+ - You can add tags to the start of blackhole lines to change the behavior
+   - [exact] Will blackhole only if the exact phrase is matched (ignoring case)
+   - [first] Will blackhole only if the first message contains the given string (ignoring case)
+   - By default, with no tag, if the given line is contained in a string (ignoring case), it will cause the person to be blackholed
+ - Remember to blick "prevent auto disconnect" when using the auto blackhole functionality, otherwise you might lose someone you are talking to
 
 ###Ignoring Bots###
  - The ignore bots options will attempt to ignore bots and phone users.
