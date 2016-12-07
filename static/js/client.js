@@ -1293,7 +1293,7 @@ pain.prototype.setup = function(socket) {
     // Prevent Auto Disconnect
     pain.btnAutoDisconnect = $('<button>', {
         text: 'Prevent Auto Disconnect',
-        class: 'btn btn-danger smallButton',
+        class: 'btn btn-success smallButton',
         click: function() {
             pain.wontAutoDisconnect = true;
             $(this).prop('disabled', true);
