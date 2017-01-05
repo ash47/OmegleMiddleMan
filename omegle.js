@@ -277,9 +277,7 @@ Omegle.prototype.start = function(callback, proxyInfo) {
                         _this.nextServer();
 
                         callback('Error: No clientID allocated.');
-                        setTimeout(function() {
-                            _this.start(callback, proxyInfo);
-                        }, 250)
+                         _this.start(callback, proxyInfo);
                         return;
                     }
 
