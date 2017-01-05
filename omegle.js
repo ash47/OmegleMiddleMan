@@ -188,6 +188,8 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback,
         // Grab the message
         var msg = 'ERROR (' + getTimeStamp() + '): ' + error.message;
 
+        thisOmegle.nextServer();
+
         // Check if we have a callback
         if(thisOmegle.errorCallback) {
             // Run the callback
