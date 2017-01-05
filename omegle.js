@@ -107,8 +107,9 @@ function Omegle(args) {
 util.inherits(Omegle, EventEmitter);
 
 // Selects a server for us
+var serverNumber = 0;
 Omegle.getSelectedServer = function() {
-    return serverList[0] || 'front1.omegle.com';
+    return serverList[serverNumber] || 'front1.omegle.com';
 }
 
 // Function to allow callbacks for when the client is ready
@@ -225,6 +226,12 @@ Omegle.prototype.reconnect = function(callback) {
     this.eventsLoop();
 };
 
+// Cycles to the next server
+Omegle.prototype.nextServer = function() {
+    if(++serverNumber >= serverList.length) serverNumber = 0;
+    this.host = Omegle.getSelectedServer();
+}
+
 // Connects
 Omegle.prototype.start = function(callback, proxyInfo) {
     var _this = this;
@@ -264,6 +271,9 @@ Omegle.prototype.start = function(callback, proxyInfo) {
 
                     // Check for errors
                     if(info.clientID == null) {
+                        // Pick a new server
+                        _this.nextServer();
+
                         callback('Error: No clientID allocated.');
                         setTimeout(function() {
                             _this.start(callback, proxyInfo);
