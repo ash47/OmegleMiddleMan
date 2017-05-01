@@ -109,7 +109,11 @@ util.inherits(Omegle, EventEmitter);
 // Selects a server for us
 var serverNumber = 0;
 Omegle.getSelectedServer = function() {
-    return serverList[serverNumber] || 'front1.omegle.com';
+    if(serverList[serverNumber]) {
+        return serverList[serverNumber] + '.omegle.com';
+    }
+
+    return 'front1.omegle.com';
 }
 
 // Function to allow callbacks for when the client is ready
