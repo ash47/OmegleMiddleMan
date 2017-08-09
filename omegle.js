@@ -113,7 +113,7 @@ Omegle.getSelectedServer = function() {
         return serverList[serverNumber] + '.omegle.com';
     }
 
-    return 'front1.omegle.com';
+    return 'front2.omegle.com';
 }
 
 // Function to allow callbacks for when the client is ready
