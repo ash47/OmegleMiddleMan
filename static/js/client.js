@@ -213,6 +213,19 @@ function painMap() {
                     $.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
                         pp.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+RecaptchaState.challenge+'" height="57">');
                         pp.challenge = RecaptchaState.challenge;
+
+                        if(pp.totalCaptchaFails == null || pp.totalCaptchaFails < 10) {
+                            // Increase total number of fails
+                            pp.totalCaptchaFails = (pp.totalCaptchaFails || 0) + 1;
+
+                            // Tell the user we are trying to read it
+                            p.addTextLine('Attempting to guess captcha...');
+
+                            setTimeout(function() {
+                                // Let's attempt to auto solve
+                                pMap.socket.emit('omegleChallenge', code, RecaptchaState.challenge, 'asd dsa');
+                            }, 1);
+                        }
                     });
                 })();
 
@@ -371,6 +384,9 @@ function painMap() {
         pMap.totalConnections++;
 
         if(p) {
+            // Reset total number of captcha fails
+            p.totalCaptchaFails = 0;
+
             // Store the time they connected
             p.startTime = new Date().getTime();
 
