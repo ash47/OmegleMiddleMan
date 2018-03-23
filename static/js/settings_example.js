@@ -41,6 +41,9 @@ omegleSettings = {
     // Should cleverbot have a delay
     delayed: true,
 
+    // Max number of common interests
+    maxCommonInterests: null,
+
     // College stuff
     // college: '',
     // college_auth: '',

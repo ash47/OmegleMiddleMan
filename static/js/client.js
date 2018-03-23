@@ -425,6 +425,8 @@ function painMap() {
         var p = pMap.findByID(client_id);
 
         if(p) {
+            var totalLikes = 0;
+
             // Loop over the likes
             for(var key in commonLikes) {
                 if(commonLikes[key].toLowerCase() == 'nomultirp') {
@@ -432,10 +434,20 @@ function painMap() {
                     pMap.doDisconnect(client_id, null, 'Disconnected: NoMultiRP detected.');
                     return;
                 }
+
+                // Increase number of likes
+                ++totalLikes;
             }
 
             // Display the likes
             p.addTextLine('The stranger likes '+htmlEntities(commonLikes.toString()));
+
+            // Do we have this setting?
+            if(omegleSettings.maxCommonInterests != null && totalLikes > omegleSettings.maxCommonInterests) {
+                // Disconnect
+                p.blackhole('Too many interests!');
+                return;
+            }
         }
     });
 
