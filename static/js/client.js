@@ -1294,6 +1294,9 @@ pain.prototype.setup = function(socket) {
         class: 'btn btn-danger',
         text: 'Blackhole',
         click: function() {
+            // Fix the input
+            pain.focusInput();
+
             if(pain.connected || pain.searching) {
                 if(confirm('Are you sure you want to blackhole this conversation?')) {
                     // Do the blackhole
@@ -1637,6 +1640,10 @@ pain.prototype.setup = function(socket) {
         }
     });
 }
+
+pain.prototype.focusInput = function() {
+    this.input.focus();
+};
 
 // Makes this hilighted
 pain.prototype.highlightThis = function(shouldHighlight) {
@@ -2558,6 +2565,9 @@ helperPain.prototype.rebuildButtons = function() {
                         class: 'btn btn-primary smallerChatButton',
                         text: (painID+1),
                         click: function() {
+                            // focus the input field of this pain
+                            pain.focusInput();
+
                             var myMessage = inputHelper.val().trim();
 
                             var _this = $(this);
