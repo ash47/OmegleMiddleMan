@@ -91,6 +91,12 @@ function painMap() {
                     theLine = theLine.substr(matchText.length);
                 }
 
+                var matchText = '[firstexact]';
+                if(theLine.indexOf(matchText) == 0) {
+                    sort = 'firstexact';
+                    theLine = theLine.substr(matchText.length);
+                }
+
                 autoBlackHoleList.push({
                     text: theLine,
                     sort: sort
@@ -520,6 +526,10 @@ function painMap() {
                         }
                     } else if(sort == 'first') {
                         if(!p.hasSpoken && lowerMsg.indexOf(word) != -1) {
+                            doBlackhole = true;
+                        }
+                    } else if(sort == 'firstexact') {
+                        if(lowerMsg == word && !p.hasSpoken && lowerMsg.indexOf(word) != -1) {
                             doBlackhole = true;
                         }
                     }
@@ -2395,10 +2405,16 @@ helperPain.prototype.setup = function() {
     this.textStringCon = $('<table>', {
         class: 'chatHelperStringTable'
     }).appendTo(
-        $('<td>', {
-            class: 'chatHelperMain'
-        }).appendTo(
-            $('<tr>').appendTo(this.container)
+        $('<div>').appendTo(
+            $('<div>', {
+                class: 'chatHelperForceScrollParent'
+            }).appendTo(
+                $('<td>', {
+                    class: 'chatHelperMain'
+                }).appendTo(
+                    $('<tr>').appendTo(this.container)
+                )
+            )
         )
     );
 

@@ -47,6 +47,7 @@ OmegleMiddleMan
  - You can add tags to the start of blackhole lines to change the behavior
    - [exact] Will blackhole only if the exact phrase is matched (ignoring case)
    - [first] Will blackhole only if the first message contains the given string (ignoring case)
+   - [firstexact] Will only blackhole the person if their first message exactly matches this string
    - By default, with no tag, if the given line is contained in a string (ignoring case), it will cause the person to be blackholed
  - Remember to blick "prevent auto disconnect" when using the auto blackhole functionality, otherwise you might lose someone you are talking to
 

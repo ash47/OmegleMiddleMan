@@ -272,6 +272,11 @@ pre {
     padding: 4px;
 }
 
+.chatHelperForceScrollParent {
+    height: 100%;
+    overflow-y: scroll;
+}
+
 .chatHelperContainer {
     width: 400px;
     float:left;
