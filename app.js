@@ -406,11 +406,11 @@ io.on('connection', function(socket) {
     });
 
     // Client is trying to answer a captcha
-    socket.on('omegleChallenge', function(code, challenge, answer) {
+    socket.on('omegleChallenge', function(code, answer) {
         var om = challenges[code];
 
         if(om != null) {
-            om.recaptcha(challenge, answer);
+            om.recaptcha(answer);
         }
     });
 

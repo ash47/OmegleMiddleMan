@@ -258,6 +258,7 @@ Omegle.prototype.start = function(callback, proxyInfo) {
         ask: this.ask,
         spid: this.spid,
         camera: this.camera,
+        caps: 'recaptcha2'
     }), function(res) {
         // Ensure the request worked
         if (res.statusCode !== 200) {
@@ -274,6 +275,8 @@ Omegle.prototype.start = function(callback, proxyInfo) {
                 try {
                     // Parse the info
                     var info = JSON.parse(data);
+
+                    console.log(JSON.stringify(info, null, 4))
 
                     // Check for errors
                     if(info.clientID == null) {
@@ -313,14 +316,16 @@ Omegle.prototype.start = function(callback, proxyInfo) {
     }, proxyInfo);
 };
 
-Omegle.prototype.recaptcha = function(challenge, answer) {
+Omegle.prototype.recaptcha = function(answer) {
     var _this = this;
 
     this.requestPost('/recaptcha', {
-        id: _this.client_id,
-        challenge: challenge,
         response: answer
-    }, function(){});
+    }, function(res){
+    	getAllData(res, function(data) {
+            console.log('Recaptcha result: ' + data);
+        });
+    });
 };
 
 Omegle.prototype.send = function(msg, callback) {

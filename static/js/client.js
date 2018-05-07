@@ -210,17 +210,30 @@ function painMap() {
 
             if(p.painID == args.painID) {
                 // Add the image
-                p.addTextLine('Loading captcha, type below and press send.');
+                p.addTextLine('You need to do recaptcha and it is currently broken. Jump on the website, do the recaptcha, then come back here.');
+
+                var b = document.createElement('div');
+                p.field.append(b);
+
+                grecaptcha.render(b, {
+                    sitekey: code,
+                    callback: function(answer) {
+                        //alert(a);
+                        pMap.socket.emit('omegleChallenge', code, answer);
+                    }
+                })
+
+                
 
                 // Scope fix
-                (function() {
+                /*(function() {
                     var pp = p;
 
-                    $.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
+                    /*$.getScript( 'http://www.google.com/recaptcha/api/challenge?k=' + encodeURIComponent(code), function( data, textStatus, jqxhr ) {
                         pp.addTextLine('<img src="http://www.google.com//recaptcha/api/image?c='+RecaptchaState.challenge+'" height="57">');
                         pp.challenge = RecaptchaState.challenge;
 
-                        if(pp.totalCaptchaFails == null || pp.totalCaptchaFails < 10) {
+                        /*if(pp.totalCaptchaFails == null || pp.totalCaptchaFails < 10) {
                             // Increase total number of fails
                             pp.totalCaptchaFails = (pp.totalCaptchaFails || 0) + 1;
 
@@ -231,9 +244,9 @@ function painMap() {
                                 // Let's attempt to auto solve
                                 pMap.socket.emit('omegleChallenge', code, RecaptchaState.challenge, 'asd dsa');
                             }, 1);
-                        }
-                    });
-                })();
+                        }*/
+                    /*});
+                })();*/
 
                 // We are doing a captcha
                 p.captcha = true;
@@ -1327,6 +1340,9 @@ pain.prototype.setup = function(socket) {
         text: 'Clear Chat',
         class: 'btn btn-danger smallButton',
         click: function() {
+            // Fix the input
+            pain.focusInput();
+
             pain.field.empty();
         }
     }).appendTo(helperButtonRow);
@@ -1336,6 +1352,9 @@ pain.prototype.setup = function(socket) {
         text: 'Prevent Auto Disconnect',
         class: 'btn btn-success smallButton',
         click: function() {
+            // Fix the input
+            pain.focusInput();
+            
             pain.wontAutoDisconnect = true;
             $(this).prop('disabled', true);
         }
