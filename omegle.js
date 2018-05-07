@@ -8,6 +8,7 @@ var qs = require('qs');
 var util = require('util');
 
 var version = '1.0';
+var settings = require('./settings.json');
 
 // Server list
 var serverList = [];
@@ -43,7 +44,7 @@ function Omegle(args) {
     // Store data
     this.userAgent = args.userAgent || 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36';
     this.host = args.host || Omegle.getSelectedServer();
-    this.language = args.language || 'en';
+    this.language = args.language || settings.defaultLanguage || 'en';
     this.mobile = args.mobile || false;
 
     // Store group
