@@ -79,8 +79,11 @@ OmegleMiddleMan
  - It's possible your client may sit on `Creating a connection` forever, if this happens, just hit the `Fix Searching` button
 
 ### Recapcha
- - It's possible your bot will be required to answer capchas due to spam
- - When the capcha image appears, simply enter the answer into the chat box, and hit send / press enter, if you are correct, it will find you a new stranger, if you fail, you will get a new capcha
+ - This is currently broken, and not easy to fix -- You will see the recaptcha and it will tell you that localhost is not supported.
+ - Simply go onto the real `omegle.com` website, click the recaptcha, and then you can continue to use this omegle client.
+
+### Language Options?
+ - Simply edit the langauge in the `settings.json` file to update the language options.
 
 ### Chat Helper
  - A chat helper lets you define a bunch of common messages that you plan to use over and over, and then broadcast them into a chat.
