@@ -77,30 +77,40 @@ function painMap() {
             var theLine = allLines[i].toLowerCase();
 
             if(theLine.length > 0) {
-                var sort = 'none';
+                var flags = {};
 
                 var matchText = '[exact]';
-                if(theLine.indexOf(matchText) == 0) {
-                    sort = 'exact';
-                    theLine = theLine.substr(matchText.length);
+                if(theLine.indexOf(matchText) != -1) {
+                    flags.exact = true;
+                    theLine = theLine.replace(matchText, '');
                 }
 
                 var matchText = '[first]';
-                if(theLine.indexOf(matchText) == 0) {
-                    sort = 'first';
-                    theLine = theLine.substr(matchText.length);
+                if(theLine.indexOf(matchText) != -1) {
+                    flags.first = true;
+                    theLine = theLine.replace(matchText, '');
                 }
 
-                var matchText = '[firstexact]';
-                if(theLine.indexOf(matchText) == 0) {
-                    sort = 'firstexact';
-                    theLine = theLine.substr(matchText.length);
+                var matchText = '[nospaces]';
+                if(theLine.indexOf(matchText) != -1) {
+                    flags.nospaces = true;
+                    theLine = theLine.replace(matchText, '');
                 }
 
-                autoBlackHoleList.push({
-                    text: theLine,
-                    sort: sort
-                });
+                var matchText = '[regex]';
+                if(theLine.indexOf(matchText) != -1) {
+                    flags.regex = true;
+                    theLine = theLine.replace(matchText, '');
+                }
+
+                theLine = theLine.trim();
+
+                if(theLine.length > 0) {
+                    autoBlackHoleList.push({
+                        text: theLine,
+                        flags: flags
+                    });
+                }
             }
         }
     });
@@ -517,32 +527,43 @@ function painMap() {
         if(p) {
             if(!p.wontAutoDisconnect) {
                 // Check for blackhole
-                var lowerMsg = msg.toLowerCase();
+                var lowerMsg = msg.toLowerCase().trim();
                 for(var i=0; i<autoBlackHoleList.length; ++i) {
                     var info = autoBlackHoleList[i]
                     var word = info.text;
-                    var sort = info.sort;
-
-                    console.log(word, sort);
+                    var flags = info.flags;
 
                     var doBlackhole = false;
 
-                    if(sort == 'none') {
-                        // They used an illegal word, perform a blackhole
-                        if(lowerMsg.indexOf(word) != -1) {
-                            doBlackhole = true;
-                        }
-                    } else if(sort == 'exact') {
-                        // They used an exact illegal phrase
+                    // First Message
+                    if(flags.first) {
+                        if(p.hasSpoken) continue;
+                    }
+
+                    // Remove all the spaces
+                    if(flags.nospaces) {
+                        lowerMsg = lowerMsg.replace(/ /g, '')
+                    }
+
+                    // Exact Match
+                    if(flags.exact) {
                         if(lowerMsg == word) {
                             doBlackhole = true;
                         }
-                    } else if(sort == 'first') {
-                        if(!p.hasSpoken && lowerMsg.indexOf(word) != -1) {
-                            doBlackhole = true;
+                    } else if(flags.regex) {
+                        try {
+                            var theRegex = new RegExp(word, 'i');
+
+                            if(lowerMsg.match(theRegex)) {
+                                doBlackhole = true;
+                            }
+                        } catch(e) {
+                            var errorMessage = 'Check your BlackHole Regex: ' + htmlEntities(e.message);
+                            p.addTextLine('<font color="red">Meta:</font> ' + errorMessage, errorMessage, 'Meta');
                         }
-                    } else if(sort == 'firstexact') {
-                        if(lowerMsg == word && !p.hasSpoken && lowerMsg.indexOf(word) != -1) {
+                        
+                    } else {
+                        if(lowerMsg.indexOf(word) != -1) {
                             doBlackhole = true;
                         }
                     }
@@ -1846,6 +1867,9 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
         setTimeout(function() {
             // Check if the same client is connected
             if(p.client_id == client_id && !p.dontAutoSend) {
+                // Get the updated message
+                var txt = p.autoMessage.val();
+
                 // Add it to our log
                 var highlight = p.addTextLine('<font color="blue">Auto:</font> '+htmlEntities(txt), txt, 'Me');
 
@@ -2595,6 +2619,10 @@ helperPain.prototype.rebuildButtons = function() {
                                 // Start typing
                                 pain.startTyping();
 
+                                // Change the color
+                                _this.addClass('btn-danger');
+                                _this.removeClass('btn-primary');
+
                                 var delay = 150 + 30 * myMessage.length;
                                 setTimeout(function() {
                                     var shouldScroll = false;
@@ -2611,6 +2639,10 @@ helperPain.prototype.rebuildButtons = function() {
                                     if(shouldScroll) {
                                         pain.field.scrollTop(pain.field.prop('scrollHeight'));
                                     }
+
+                                    // Reset the color
+                                    _this.removeClass('btn-danger');
+                                    _this.addClass('btn-primary');
                                 }, delay);
                             }
                         },
