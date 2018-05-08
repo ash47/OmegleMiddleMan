@@ -277,8 +277,6 @@ Omegle.prototype.start = function(callback, proxyInfo) {
                     // Parse the info
                     var info = JSON.parse(data);
 
-                    console.log(JSON.stringify(info, null, 4))
-
                     // Check for errors
                     if(info.clientID == null) {
                         // Pick a new server
