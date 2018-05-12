@@ -1342,7 +1342,11 @@ pain.prototype.setup = function(socket) {
 
     this.send = $('<button>', {
         class: 'btn btn-primary',
-        text: 'Send'
+        text: 'Send',
+        click: function() {
+            // Send the current message
+            pain.sendCurrentMessage();
+        }
     }).appendTo(buttonHolder);
 
     this.autoMessage = $('<textarea>', {
@@ -1373,11 +1377,11 @@ pain.prototype.setup = function(socket) {
         text: 'Prevent Auto Disconnect',
         class: 'btn btn-success smallButton',
         click: function() {
+            // Prevent auto disconnect
+            pain.preventAutoDisconnect();
+
             // Fix the input
             pain.focusInput();
-            
-            pain.wontAutoDisconnect = true;
-            $(this).prop('disabled', true);
         }
     }).appendTo(helperButtonRow);
 
@@ -1589,31 +1593,8 @@ pain.prototype.setup = function(socket) {
     // Hook press enter to send
     pain.input.on('keydown', function(e) {
         if (e.which == 13 && ! e.shiftKey) {
-            // Grab the txt and reset the field
-            var txt = pain.input.val();
-
-            // Reset the field
-            pain.input.val('');
-
-            // Remove new lines from the end
-            while(txt.length > 0 && txt.charAt(txt.length-1) == '\n') {
-                txt = txt.substr(0, txt.length-1);
-            }
-
-            // Do we have a message?
-            if(txt != '') {
-                // Add it to our log
-                var highlight = pain.addTextLine('<font color="blue">You:</font> '+htmlEntities(txt), txt, 'Me');
-
-                // Send the message
-                pain.sendMessage(txt, highlight);
-
-                // Confirm the D/C
-                if(this.connected) {
-                    pain.updateButton('Disconnect', 'btn-danger');
-                    pain.confirmDisconnect = false;
-                }
-            }
+            // Send the current message
+            pain.sendCurrentMessage();
         }
     });
 
@@ -1652,31 +1633,6 @@ pain.prototype.setup = function(socket) {
         } else {
             // A string
             pain.startTyping();
-        }
-    });
-
-    // Hook send button
-    pain.send.click(function() {
-        // Ensure we are connected
-        if(pain.connected) {
-            // Grab the txt and reset the field
-            var txt = pain.input.val();
-            pain.input.val('');
-
-            // Do we have a message?
-            if(txt != '') {
-                // Add it to our log
-                var highlight = pain.addTextLine('<font color="blue">You:</font> '+htmlEntities(txt), txt, 'Me');
-
-                // Send the message
-                pain.sendMessage(txt, highlight);
-
-                // Confirm the D/C
-                if(this.connected) {
-                    pain.updateButton('Disconnect', 'btn-danger');
-                    pain.confirmDisconnect = false;
-                }
-            }
         }
     });
 }
@@ -2277,6 +2233,44 @@ pain.prototype.disconnect = function() {
         this.newRandid();
     }
 }
+
+// Attempts to send the current message
+pain.prototype.sendCurrentMessage = function() {
+    // Grab the txt and reset the field
+    var txt = this.input.val();
+
+    // Reset the field
+    this.input.val('');
+
+    // Remove new lines from the end
+    while(txt.length > 0 && txt.charAt(txt.length-1) == '\n') {
+        txt = txt.substr(0, txt.length-1);
+    }
+
+    // Do we have a message?
+    if(txt != '') {
+        // Add it to our log
+        var highlight = this.addTextLine('<font color="blue">You:</font> '+htmlEntities(txt), txt, 'Me');
+
+        // Send the message
+        this.sendMessage(txt, highlight);
+
+        // Confirm the D/C
+        if(this.connected) {
+            this.updateButton('Disconnect', 'btn-danger');
+            this.confirmDisconnect = false;
+        }
+
+        // Prevent auto disconnect
+        this.preventAutoDisconnect();
+    }
+};
+
+// Prevent auto disconnect
+pain.prototype.preventAutoDisconnect = function() {
+    this.wontAutoDisconnect = true;
+    this.btnAutoDisconnect.prop('disabled', true);
+};
 
 // Performs a blackhole
 pain.prototype.blackhole = function(reason) {
