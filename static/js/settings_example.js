@@ -44,6 +44,16 @@ omegleSettings = {
     // Max number of common interests
     maxCommonInterests: null,
 
+    // The max amount of time we will wait for them to start typing
+    maxWaitType: 15,
+
+    // The max amount of time we will wait for them to send the first message
+    maxWaitMessage: 45,
+
+    // This will auto disconnect if someone speaks within 3 seconds and didn't send a "typing" command
+    // This kind of thing is very common for bots, but, you also get it for some phone apps
+    agressiveBotIgnore: false,
+
     // College stuff
     // college: '',
     // college_auth: '',

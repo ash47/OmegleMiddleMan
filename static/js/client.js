@@ -429,10 +429,10 @@ function painMap() {
             p.sendAutoMessage(client_id, 1500);
 
             // Auto disconnect
-            p.autoDisconnect(client_id, 10000, 30000);
+            p.autoDisconnect(client_id, (omegleSettings.maxWaitType || 15) * 1000, (omegleSettings.maxWaitMessage || 45) * 1000);
 
             // Store their name
-            p.nameField.val('Stranger '+pMap.totalConnections);
+            p.nameField.val('Stranger ' + pMap.totalConnections);
 
             // Is there a camera?
             if(peerID != null) {
@@ -583,15 +583,17 @@ function painMap() {
                 }
 
                 // Check for auto disconnect
-                if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3 && !p.hasSpoken) {
-                    p.dontAutoSend = true;
+                if(omegleSettings.agressiveBotIgnore) {
+                    if(!p.hasTyped && p.ignoreBots.is(':checked') && p.getTimeConnected() < 3 && !p.hasSpoken) {
+                        p.dontAutoSend = true;
 
-                    setTimeout(function() {
-                        if(p.client_id == client_id) {
-                            pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
-                        }
-                    }, 1000);
-                    return;
+                        setTimeout(function() {
+                            if(p.client_id == client_id) {
+                                pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
+                            }
+                        }, 1000);
+                        return;
+                    }
                 }
             }
 
