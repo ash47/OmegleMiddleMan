@@ -3,7 +3,7 @@
 */
 
 var EventEmitter = require('events').EventEmitter;
-var http = require('http');
+var https = require('https');
 var qs = require('qs');
 var util = require('util');
 
@@ -155,7 +155,7 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback,
     var options = {
         method: method,
         host: this.host,
-        port: 80,
+        port: 443,
         path: path,
         headers: {
             'User-Agent': this.userAgent,
@@ -181,8 +181,17 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback,
         options.headers['Connection'] = 'Keep-Alive';
     }
 
+    // Debug mode
+    if(settings.debug) {
+        console.log('Requesting: https://' + this.host + path);
+
+        if(data) {
+            console.log(JSON.stringify(data, null, 4));
+        }
+    }
+
     // Create the request
-    var req = http.request(options, callback);
+    var req = https.request(options, callback);
 
     // Handle disconnect error
     req.on('error', function(error) {

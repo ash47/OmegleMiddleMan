@@ -1,3 +1,4 @@
 {
-	"defaultLanguage": "en"
+	"defaultLanguage": "en",
+	"debug": false
 }
