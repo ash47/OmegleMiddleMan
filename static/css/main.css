@@ -168,10 +168,16 @@ li {
 
 .omegleAutoMessage {
     width: 120px;
-    height: 85px !important;
+    height: 65px !important;
     resize: none;
     display: inline-block;
     padding: 4px;
+}
+
+.omegleClientId {
+    padding: 4px;
+    width: 120px;
+    height: 20px !important;
 }
 
 .nameField {

@@ -183,7 +183,7 @@ function painMap() {
                 // Found a connection
                 p.searching = false;
                 p.connected = true;
-                p.client_id = client_id;
+                p.updateClientId(client_id);
                 p.confirmDisconnect = false;
 
                 // Are we reconnecting
@@ -207,7 +207,7 @@ function painMap() {
         // Did we find a pain that needed it?
         if(!found) {
             // Unwanted connection, just drop it
-            pMap.socket.emit('omegleDisconnect', client_id);
+            //pMap.socket.emit('omegleDisconnect', client_id);
         }
     });
 
@@ -366,7 +366,7 @@ function painMap() {
                 // Found a connection
                 p.searching = false;
                 p.connected = true;
-                p.client_id = client_id;
+                p.updateClientId(client_id);
 
                 // Store the start time
                 p.startTime = new Date().getTime();
@@ -588,7 +588,7 @@ function painMap() {
                         p.dontAutoSend = true;
 
                         setTimeout(function() {
-                            if(p.client_id == client_id) {
+                            if(p.getClientId() == client_id) {
                                 pMap.doDisconnect(client_id, null, 'Disconnected: Bot or phone user.');
                             }
                         }, 1000);
@@ -695,7 +695,7 @@ function painMap() {
 
             // Unhook
             p.connected = false;
-            p.client_id = null;
+            p.updateClientId();
 
             // Reset button
             p.updateButton('New', 'btn-primary');
@@ -1025,7 +1025,7 @@ painMap.prototype.findByID = function(client_id, remove) {
         var p = this.pains[key];
 
         // Check if this is the one we were looking for
-        if(p.client_id == client_id) {
+        if(p.getClientId() == client_id) {
             // Check if we need to remove it
             if(remove) {
                 // Remove the pain
@@ -1087,7 +1087,7 @@ painMap.prototype.conFailedProxy = function(painID) {
 
     // Unhook
     p.connected = false;
-    p.client_id = null;
+    p.updateClientId();
 
     // Section off
     p.addLineBreak();
@@ -1124,7 +1124,7 @@ painMap.prototype.doDisconnect = function(client_id, name, altMessage) {
 
     // Unhook
     p.connected = false;
-    p.client_id = null;
+    p.updateClientId();
 
     // Print the connected time
     p.printTimeConnected();
@@ -1199,9 +1199,6 @@ var totalPains = 0;
 function pain() {}
 
 pain.prototype.setup = function(socket) {
-    // The ID of our connected client
-    this.client_id = null;
-
     // If we are connected or not
     this.connected = false;
 
@@ -1355,6 +1352,12 @@ pain.prototype.setup = function(socket) {
         class: 'form-control omegleAutoMessage',
         type: 'text',
         val: defaultAutoMessage
+    }).appendTo(buttonHolder2);
+
+    this.fieldClientId = $('<input>', {
+        class: 'form-control omegleClientId',
+        type: 'text',
+        val: ''
     }).appendTo(buttonHolder2);
 
     // Helper button container
@@ -1637,6 +1640,9 @@ pain.prototype.setup = function(socket) {
             pain.startTyping();
         }
     });
+
+    // The ID of our connected client
+    this.updateClientId();
 }
 
 pain.prototype.focusInput = function() {
@@ -1803,10 +1809,32 @@ pain.prototype.reconnect = function() {
         // Attempt to reconnect this session
         this.socket.emit('reconnectOmegle', {
             painID: this.painID,
-            client_id: this.client_id,
+            client_id: this.getClientId()
         });
     }
 }
+
+pain.prototype.updateClientId = function(newClientId) {
+    // Store the change
+    //this.client_id = newClientId();
+
+    // Update the value
+    this.fieldClientId.val(newClientId || '');
+};
+
+pain.prototype.getClientId = function(newClientId) {
+    // Store the change
+    //this.client_id = newClientId();
+
+    // Update the value
+    var theVal = this.fieldClientId.val();
+
+    if(theVal == '') {
+        return null;
+    } else {
+        return theVal;
+    }
+};
 
 // Sends out the auto message after the given delay
 pain.prototype.sendAutoMessage = function(client_id, delay) {
@@ -1824,7 +1852,7 @@ pain.prototype.sendAutoMessage = function(client_id, delay) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id && !p.dontAutoSend) {
+            if(p.getClientId() == client_id && !p.dontAutoSend) {
                 // Get the updated message
                 var txt = p.autoMessage.val();
 
@@ -1848,7 +1876,7 @@ pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id && !p.hasTyped && !p.hasSpoken && p.ignoreBots.is(':checked') && !p.wontAutoDisconnect) {
+            if(p.getClientId() == client_id && !p.hasTyped && !p.hasSpoken && p.ignoreBots.is(':checked') && !p.wontAutoDisconnect) {
                 // Disconnect
                 p.painMap.doDisconnect(client_id, null, 'Disconnected: Slow responder or bot.');
                 return;
@@ -1858,7 +1886,7 @@ pain.prototype.autoDisconnect = function(client_id, delay, delay2) {
         // Give a short delay before sending the message
         setTimeout(function() {
             // Check if the same client is connected
-            if(p.client_id == client_id && !p.hasSpoken && p.ignoreBots.is(':checked') && !p.wontAutoDisconnect) {
+            if(p.getClientId() == client_id && !p.hasSpoken && p.ignoreBots.is(':checked') && !p.wontAutoDisconnect) {
                 // Disconnect
                 p.painMap.doDisconnect(client_id, null, 'Disconnected: Slow responder or bot.');
                 return;
@@ -1916,7 +1944,7 @@ pain.prototype.updateButton = function(newText, newClass) {
 pain.prototype.startTyping = function() {
     if(this.connected && !this.isTyping) {
         // Send the message
-        this.socket.emit('omegleTyping', this.client_id);
+        this.socket.emit('omegleTyping', this.getClientId());
 
         // This channel is now typing
         this.isTyping = true;
@@ -1926,7 +1954,7 @@ pain.prototype.startTyping = function() {
 // Stops typing
 pain.prototype.stopTyping = function() {
     if(this.connected && this.isTyping) {
-        this.socket.emit('omegleStopTyping', this.client_id);
+        this.socket.emit('omegleStopTyping', this.getClientId());
     }
 
     this.isTyping = false;
@@ -1988,7 +2016,7 @@ pain.prototype.sendMessage = function(msg, highlight) {
         }
 
         // Send the message
-        this.socket.emit('omegleSend', this.client_id, msg, myNum);
+        this.socket.emit('omegleSend', this.getClientId(), msg, myNum);
     }
 
     // This controller is no longer typing
@@ -2202,13 +2230,13 @@ pain.prototype.disconnect = function() {
     // Check if we are already connected
     if(this.connected || this.searching) {
         // Disconnect
-        this.socket.emit('omegleDisconnect', this.client_id, this.painID);
+        this.socket.emit('omegleDisconnect', this.getClientId(), this.painID);
     }
 
     // Reset vars
     this.connected = false;
     this.searching = false;
-    this.client_id = null;
+    this.updateClientId();
     this.reconnecting = false;
 
     // Cleanup callbacks
@@ -2279,13 +2307,13 @@ pain.prototype.blackhole = function(reason) {
     // Check if we are already connected
     if(this.connected || this.searching) {
         // Disconnect
-        this.socket.emit('omegleBlackhole', this.client_id, this.painID);
+        this.socket.emit('omegleBlackhole', this.getClientId(), this.painID);
     }
 
     // Reset vars
     this.connected = false;
     this.searching = false;
-    this.client_id = null;
+    this.updateClientId();
     this.reconnecting = false;
 
     // Cleanup callbacks
@@ -2690,7 +2718,7 @@ cleverPain.prototype.sendMessage = function(msg) {
     // Ensure we are connected
     if(this.connected) {
         // Send the message
-        this.socket.emit('cleverSend', this.client_id, msg);
+        this.socket.emit('cleverSend', this.getClientId(), msg);
 
         // Show that they're talking
         this.updateTalking(true);
@@ -2708,14 +2736,14 @@ cleverPain.prototype.disconnect = function() {
     // Check if we are already connected
     if(this.connected) {
         // Disconnect
-        this.socket.emit('cleverDisconnect', this.client_id);
+        this.socket.emit('cleverDisconnect', this.getClientId());
     }
 
     // Reset vars
     this.connected = false;
     this.searching = false;
     this.reconnecting = false;
-    this.client_id = null;
+    this.updateClientId();
 
     // Change text
     this.updateButton('New', 'btn-primary');
