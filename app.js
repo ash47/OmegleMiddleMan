@@ -11,6 +11,8 @@ var https = require('https');
 var httpServer = http.Server(app);
 var io = require('socket.io')(httpServer);
 
+var settings = require('./settings.json');
+
 //var Cleverbot = require('./cleverbot.js');
 //var Sham = require('./shamchat.js').Sham;
 
@@ -468,6 +470,12 @@ io.on('connection', function(socket) {
     socket.on('omegleLog', function(cacheNumber, toCache) {
         // Make the request
         var postData = 'log=' + toCache + '&host=1';
+
+        // Debug mode
+        if(settings.debug) {
+            console.log('Requesting: http://logs.omegle.com/generate');
+            console.log(postData);
+        }
 
         var postOptions = {
             host: 'logs.omegle.com',
