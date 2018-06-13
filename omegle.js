@@ -110,11 +110,7 @@ util.inherits(Omegle, EventEmitter);
 // Selects a server for us
 var serverNumber = 0;
 Omegle.getSelectedServer = function() {
-    if(serverList[serverNumber]) {
-        return serverList[serverNumber] + '.omegle.com';
-    }
-
-    return 'front2.omegle.com';
+    return serverList[serverNumber] || 'omegle.com';
 }
 
 // Function to allow callbacks for when the client is ready
@@ -449,7 +445,12 @@ function mobileValue(mobileParam) {
 
     om.getStatus(function(status) {
         // Store the server list
-        serverList = status.servers;
+        serverList = ['omegle.com'];
+
+        // Add the entries we just got
+        for(var i=0; i<status.servers.length; ++i) {
+            serverList.push(status.servers[i] + '.omegle.com');
+        }
 
         // Ensure at least one server was found
         if(serverList.length == 0) {
