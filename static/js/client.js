@@ -2646,6 +2646,7 @@ helperPain.prototype.rebuildButtons = function() {
                                 // Change the color
                                 _this.addClass('btn-danger');
                                 _this.removeClass('btn-primary');
+                                _this.prop('disabled', true);
 
                                 var delay = 150 + 30 * myMessage.length;
                                 setTimeout(function() {
@@ -2667,6 +2668,7 @@ helperPain.prototype.rebuildButtons = function() {
                                     // Reset the color
                                     _this.removeClass('btn-danger');
                                     _this.addClass('btn-primary');
+                                    _this.prop('disabled', false);;
                                 }, delay);
                             }
                         },
