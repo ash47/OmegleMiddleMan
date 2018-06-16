@@ -2647,6 +2647,7 @@ helperPain.prototype.rebuildButtons = function() {
                                 _this.addClass('btn-danger');
                                 _this.removeClass('btn-primary');
                                 _this.prop('disabled', true);
+                                pain.highlightThis(false);
 
                                 var delay = 150 + 30 * myMessage.length;
                                 setTimeout(function() {
