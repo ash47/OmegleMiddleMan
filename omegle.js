@@ -304,7 +304,7 @@ Omegle.prototype.start = function(callback, proxyInfo) {
                     _this.emit('newid', _this.client_id);
 
                     // Push Events
-                    _this.eventReceived(JSON.stringify(info.events || {}));
+                    _this.eventReceived(false, JSON.stringify(info.events || {}));
                 } catch(e) {
                     // Failure :(
                     callback('Failed to parse JSON: '+e+'\n\n' + String(data));
@@ -378,24 +378,39 @@ Omegle.prototype.eventsLoop = function() {
     }, function(res) {
         if (res.statusCode === 200) {
             getAllData(res, function(eventData) {
-                _this.eventReceived(eventData);
+                _this.eventReceived(true, eventData);
             });
+        } else {
+            // Some kind of error, log i t
+            console.log('Got an unknown status code in events loop: ' + res.statusCode);
+
+            // Restart events loop
+            _this.eventsLoop();
         }
     });
 };
 
-Omegle.prototype.eventReceived = function(data) {
-    var event, _i, _len;
+Omegle.prototype.eventReceived = function(shouldLoop, data) {
+    try {
+        // Did we get any data?
+        if(data != null) {
+            var event, _i, _len;
 
-    data = JSON.parse(data);
-    if (data != null) {
-        for (_i = 0, _len = data.length; _i < _len; _i++) {
-            event = data[_i];
-            this.emit.apply(this, event);
+            data = JSON.parse(data);
+            if (data != null) {
+                for (_i = 0, _len = data.length; _i < _len; _i++) {
+                    event = data[_i];
+                    this.emit.apply(this, event);
+                }
+            }
         }
+    } catch(e) {
+        // Do nothing
     }
-
-    if (this.client_id) {
+    
+    // Do we still have a client id?
+    if (shouldLoop && this.client_id) {
+        // Start the events loop
         this.eventsLoop();
     }
 };
@@ -403,12 +418,25 @@ Omegle.prototype.eventReceived = function(data) {
 function getAllData(res, callback) {
     var buffer;
 
+    var finished = false;
+
     buffer = [];
     res.on('data', function(chunk) {
         return buffer.push(chunk);
     });
 
+    // If we have an error
+    res.on('error', function() {
+        if(finished) return;
+        finished = true;
+
+        callback(buffer.join(''));
+    });
+
     res.on('end', function() {
+        if(finished) return;
+        finished = true;
+
         callback(buffer.join(''));
     });
 };
