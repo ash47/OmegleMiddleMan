@@ -138,7 +138,9 @@ function painMap() {
             var p = pMap.pains[key];
 
             // Tell the client
-            p.addTextLine('Socket error: '+htmlEntities(e.message));
+            if(omegleSettings.debug) {
+                p.addTextLine('Socket error: '+htmlEntities(e.message));
+            }
             throw e;
         }
     });
@@ -349,7 +351,9 @@ function painMap() {
                 // Found the right pain
 
                 // Log the problem
-                p.addTextLine('Error: '+htmlEntities(err));
+                if(omegleSettings.debug) {
+                    p.addTextLine('Error: '+htmlEntities(err));
+                }
             }
         }
     });
@@ -679,6 +683,15 @@ function painMap() {
 
         if(p) {
             p.updateTalking(false);
+        }
+    });
+
+    pMap.socket.on('debugEvent', function(client_id, reason) {
+        var p = pMap.findByID(client_id);
+
+        if(p) {
+            // Print time connected
+            p.debugEvent(reason);
         }
     });
 
@@ -1305,6 +1318,10 @@ pain.prototype.setup = function(socket) {
         class: 'bottomContainer'
     }).appendTo(this.container);
 
+    this.debugField = $('<div>', {
+        class: 'form-control omegleDebugField'
+    }).appendTo(this.con);
+
     this.input = $('<textarea>', {
         class: 'form-control omegleField'
     }).appendTo(this.con);
@@ -1827,7 +1844,11 @@ pain.prototype.getClientId = function(newClientId) {
     //this.client_id = newClientId();
 
     // Update the value
-    var theVal = this.fieldClientId.val();
+    try {
+        var theVal = this.fieldClientId.val();
+    } catch(e) {
+        return null;
+    }
 
     if(theVal == '') {
         return null;
@@ -1977,6 +1998,16 @@ pain.prototype.updateTalking = function(talking) {
         });
     }
 }
+
+pain.prototype.debugEvent = function(reason) {
+    this.debugLastEvent = new Date();
+
+    this.debugField.prepend(
+        $('<div>', {
+            text: niceTime(true) + ' - ' + reason
+        })
+    );
+};
 
 // Sends a message to the given controller
 pain.prototype.sendMessage = function(msg, highlight) {
@@ -2781,7 +2812,7 @@ function setPeerID(painID, newPeerID) {
 }
 
 // Returns the currnt time, formatted nicely
-function niceTime() {
+function niceTime(addSeconds) {
     var months = {
         0: 'January',
         1: 'Febuary',
@@ -2806,8 +2837,15 @@ function niceTime() {
         minutes = '0' + minutes;
     }
 
+    var seconds = '';
+    if(addSeconds) {
+        var dateSeconds = d.getSeconds();
+        if(dateSeconds < 10) dateSeconds = '0' + dateSeconds;
+        seconds = ':' + dateSeconds;
+    }
+
     // Format the time nicely
-    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getHours() + ':' + minutes;
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getHours() + ':' + minutes + seconds;
 }
 
 function htmlEntities(str) {

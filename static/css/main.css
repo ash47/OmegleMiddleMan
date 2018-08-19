@@ -95,11 +95,31 @@ li {
     padding-right: 4px;
 }
 
+.omegleDebugField {
+    display: none;
+}
+
+.debugMode .omegleDebugField {
+    display: block;
+    width: 400px;
+    height:120px;
+    border: 4px solid #AAA;
+    resize: none;
+    padding: 0px;
+    padding-left: 4px;
+    padding-right: 4px;
+    overflow-y: scroll;
+}
+
 .omegleWindowContainer {
     position: absolute;
     top: 46px;
     bottom: 366px;
     width: 400px;
+}
+
+.debugMode .omegleWindowContainer {
+    bottom: calc(366px + 120px);
 }
 
 .videoEnabled .omegleWindowContainer {
@@ -351,6 +371,10 @@ hr {
     bottom: 4px;
 
     height: 360px;
+}
+
+.debugMode .bottomContainer {
+    height: calc(360px + 120px);
 }
 
 .videoEnabled .bottomContainer {

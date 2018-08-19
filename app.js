@@ -258,6 +258,14 @@ io.on('connection', function(socket) {
             socket.emit('omegleStoppedTyping', realClientID);
         });
 
+        // Debug events
+        if(settings.debug) {
+	        om.on('debugEvent', function(reason) {
+	            // Tell client
+	            socket.emit('debugEvent', realClientID, reason);
+	        });
+	    }
+
         // Are we doing a reconnect?
         if(reconnect) {
             // Reconnect to a client

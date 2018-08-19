@@ -193,8 +193,16 @@ Omegle.prototype.requestFull = function(method, path, data, keepAlive, callback,
     // Create the request
     var req = https.request(options, callback);
 
+    // Allow no more than 65 seconds to complete the request
+    setTimeout(function() {
+        req.socket.end();
+    }, 65 * 1000);
+
     // Handle disconnect error
     req.on('error', function(error) {
+        //console.log('$$$ ERROR!!!! $$$');
+        //console.log(error);
+
         // Grab the message
         var msg = 'ERROR (' + getTimeStamp() + '): ' + error.message;
 
@@ -233,6 +241,10 @@ Omegle.prototype.reconnect = function(callback) {
 
     // Emit the new ID event
     this.emit('newid', this.client_id);
+
+    if(settings.debug) {
+        this.emit('debugEvent', 'eventsLoop() reconnect');
+    }
 
     // Start the events loop again
     this.eventsLoop();
@@ -309,6 +321,10 @@ Omegle.prototype.start = function(callback, proxyInfo) {
                     // Failure :(
                     callback('Failed to parse JSON: '+e+'\n\n' + String(data));
                 } finally {
+                    if(settings.debug) {
+                        _this.emit('debugEvent', 'eventsLoop() finally');
+                    }
+
                     // Run the event loop
                     _this.eventsLoop();
                 }
@@ -373,9 +389,17 @@ Omegle.prototype.disconnect = function(callback) {
 Omegle.prototype.eventsLoop = function() {
     var _this = this;
 
+    if(settings.debug) {
+        this.emit('debugEvent', 'onEventsLoopStart()');
+    }
+
     this.requestKA('/events', {
         id: this.client_id
     }, function(res) {
+        if(settings.debug) {
+            _this.emit('debugEvent', 'onGetStatusCode() ' + res.statusCode);
+        }
+
         if (res.statusCode === 200) {
             getAllData(res, function(eventData) {
                 _this.eventReceived(true, eventData);
@@ -384,6 +408,10 @@ Omegle.prototype.eventsLoop = function() {
             // Some kind of error, log i t
             console.log('Got an unknown status code in events loop: ' + res.statusCode);
 
+            if(settings.debug) {
+                _this.emit('debugEvent', 'eventsLoop() bad status code');
+            }
+
             // Restart events loop
             _this.eventsLoop();
         }
@@ -391,6 +419,10 @@ Omegle.prototype.eventsLoop = function() {
 };
 
 Omegle.prototype.eventReceived = function(shouldLoop, data) {
+    if(settings.debug) {
+        this.emit('debugEvent', 'onGetEventData() _start_');
+    }
+
     try {
         // Did we get any data?
         if(data != null) {
@@ -400,16 +432,27 @@ Omegle.prototype.eventReceived = function(shouldLoop, data) {
             if (data != null) {
                 for (_i = 0, _len = data.length; _i < _len; _i++) {
                     event = data[_i];
+
+                    if(settings.debug) {
+                        this.emit('debugEvent', 'onGetEventData() ' + JSON.stringify(event));
+                    }
+
                     this.emit.apply(this, event);
                 }
             }
         }
     } catch(e) {
         // Do nothing
+        console.log('event apply error');
+        console.log(e);
     }
     
     // Do we still have a client id?
     if (shouldLoop && this.client_id) {
+        if(settings.debug) {
+            this.emit('debugEvent', 'eventsLoop() events received');
+        }
+
         // Start the events loop
         this.eventsLoop();
     }
