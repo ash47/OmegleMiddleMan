@@ -2391,7 +2391,12 @@ pain.prototype.blackhole = function(reason) {
 
 // Returns the prefix for this pain
 pain.prototype.getPrefix = function() {
-    return this.nameField.val()+': ';
+    return this.getName() + ': ';
+}
+
+// Returns the name for this pain
+pain.prototype.getName = function() {
+    return this.nameField.val();
 }
 
 // Calculates how long we have been connected
@@ -2671,6 +2676,9 @@ helperPain.prototype.rebuildButtons = function() {
                             var _this = $(this);
 
                             if(myMessage.length > 0) {
+                                // Do replacements
+                                myMessage = myMessage.replace(/\{\{name\}\}/g, pain.getName() || '');
+
                                 // Start typing
                                 pain.startTyping();
 
@@ -2680,7 +2688,7 @@ helperPain.prototype.rebuildButtons = function() {
                                 _this.prop('disabled', true);
                                 pain.highlightThis(false);
 
-                                var delay = 150 + 30 * myMessage.length;
+                                var delay = 300 + 60 * myMessage.length;
                                 setTimeout(function() {
                                     var shouldScroll = false;
                                     if(Math.ceil(pain.field.scrollTop() + pain.field.innerHeight()) >= Math.floor(pain.field.prop('scrollHeight'))) {
