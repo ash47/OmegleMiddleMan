@@ -1,5 +1,5 @@
 body {
-    background: #fff7ee;
+    background: #222;
     padding:0px;
     margin:0px;
     overflow: hidden;
@@ -8,6 +8,12 @@ body {
 li {
     list-style-type: none;
 }
+
+input[type="text"], textarea {
+    background-color: #343434;
+    color: white;
+}
+
 
 #newCleverBot {
     display: none;
@@ -22,7 +28,7 @@ li {
     padding-bottom:4px;*/
 
     margin-top: 40px;
-    height: calc(100% - 40px;);
+    height: calc(100% - 40px);
 }
 
 #windowManager {
@@ -33,7 +39,8 @@ li {
     margin:0px;
     margin-bottom:4px;
     padding:4px;
-    background-color:#fff7cc;
+    background-color:#333;
+    color: white;
     border-bottom:1px solid #000;
 }
 
@@ -50,6 +57,7 @@ li {
     margin: 0px;
     margin-left: -8px;
     padding: 0px;
+    color: white;
     padding-left: 32px;
     vertical-align: top;
 }
@@ -77,6 +85,7 @@ li {
 
 .omegleContainer label {
     margin-left: 8px;
+    color: white;
 }
 
 .flashCon {
@@ -89,6 +98,8 @@ li {
     width: 400px;
     height:120px;
     border: 4px solid #AAA;
+    background-color: #343434;
+    color: white;
     resize: none;
     padding: 0px;
     padding-left: 4px;
@@ -167,10 +178,11 @@ li {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
     -moz-border-radius-topleft: 8px;
-    -moz-border-radius-topright: 8px
+    -moz-border-radius-topright: 8px;
     -webkit-border-top-left-radius: 8px;
     -webkit-border-top-right-radius: 8px;
-    background: #FFF;
+    background: #444;
+    color: white;
     font-family: Helvetica,Arial,sans-serif;
     padding: 4px;
 
@@ -189,6 +201,8 @@ li {
 .omegleAutoMessage {
     width: 120px;
     height: 65px !important;
+    background-color: #343434;
+    color:white;
     resize: none;
     display: inline-block;
     padding: 4px;
@@ -235,6 +249,7 @@ li {
 pre {
     margin:0px;
     white-space: pre-wrap;
+    color: #FFF;
 }
 
 #totalOmeglers {
@@ -252,7 +267,7 @@ pre {
     width: 16px;
     padding: 0px 5px 2px 12px;
     margin-right: 0px;
-    color: #000;
+    color: white;
 
     -moz-border-radius: 8px;
     border-radius: 8px;
@@ -273,7 +288,8 @@ pre {
     right: 0px;
     top:44px;
     bottom: 0px;
-    background: #fff7cc;
+    background: #222;
+    color: white;
     padding: 4px;
     display: none;
 }
@@ -314,6 +330,8 @@ pre {
 .chatHelperInput {
     width: 100%;
     min-width: 100px;
+    background-color: #343434;
+    color: white;
 }
 
 .chatHelperButtonCon {
