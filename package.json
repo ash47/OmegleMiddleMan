@@ -6,7 +6,7 @@
   "dependencies": {
     "express": "*",
     "faye": "*",
-    "qs": "*",
+    "qs": "^6.10.1",
     "request": "*",
     "socket.io": "*"
   }
