@@ -1,6 +1,16 @@
 OmegleMiddleMan
 ===============
 
+# New Version Available at MiddleMan.Chat
+ - This app is currently being rebuild from the ground up with a nicer UI, more features, and bug fixes
+ - [MiddleMan.Chat](https://MiddleMan.Chat/) - Try the free version and purchase the full version when you're happy with it
+ - More features coming soon
+
+# Unmaintained
+ - This repo is now considered unmaintained, we will not be merging pull requests, and all the option issues will be fixed in the new version per above
+
+### Old stuff:
+
  - Lets you connect to two or more clients, then middle man the conversation, allowing you to intercept, change and even add new messages.
 
 ### Requirements / Setup
