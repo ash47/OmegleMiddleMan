@@ -276,7 +276,7 @@ Omegle.prototype.start = function(callback, proxyInfo) {
         ask: this.ask,
         spid: this.spid,
         camera: this.camera,
-        caps: 'recaptcha2,t'
+        caps: 'recaptcha2,t2'
     }), function(res) {
         // Ensure the request worked
         if (res.statusCode !== 200) {
