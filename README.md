@@ -3,7 +3,6 @@ OmegleMiddleMan
 
 # New Version Available at MiddleMan.Chat
  - This app is currently being rebuild from the ground up with a nicer UI, more features, and bug fixes
- - [MiddleMan.Chat](https://MiddleMan.Chat/) - Try the free version and purchase the full version when you're happy with it
  - More features coming soon
 
 # Unmaintained
