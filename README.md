@@ -1,7 +1,7 @@
 OmegleMiddleMan
 ===============
 
-# New Version Available at MiddleMan.Chat
+# New Version Coming Soon
  - This app is currently being rebuild from the ground up with a nicer UI, more features, and bug fixes
  - More features coming soon
 
